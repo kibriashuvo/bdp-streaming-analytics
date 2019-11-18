@@ -1,0 +1,6 @@
+/usr/local/flink/bin/stop-cluster.sh 
+
+sudo rm -r /usr/local/flink
+
+
+echo '-------Cleanup complete--------'
