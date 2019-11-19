@@ -1,6 +1,14 @@
+#Stopping Flink and deleting the folder
+
 /usr/local/flink/bin/stop-cluster.sh 
 
 sudo rm -r /usr/local/flink
 
+#Stopping Kafka and deleting the folder
+
+
+#Removing the target directory of Maven
+
+rm -r code/customer-code/customerstreamapp/target/
 
 echo '-------Cleanup complete--------'

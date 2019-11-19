@@ -1,0 +1,15 @@
+wget http://mirror.netinch.com/pub/apache/kafka/2.3.0/kafka_2.12-2.3.0.tgz
+
+tar xvzf kafka_2.12-2.3.0.tgz
+
+rm kafka_2.12-2.3.0.tgz
+
+sudo mv kafka_2.12-2.3.0 /usr/local/kafka
+
+#Starting zookeeper
+
+/usr/local/kafka/bin/zookeeper-server-start.sh /usr/local/kafka/config/zookeeper.properties
+
+#Starting kafka
+
+/usr/local/kafka/bin/kafka-server-start.sh /usr/local/kafka/config/server.properties

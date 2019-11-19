@@ -9,3 +9,6 @@ sudo mv flink-1.9.1 /usr/local/flink
 /usr/local/flink/bin/start-cluster.sh 
 
 echo '------Flink installation complete. Server started at http://localhost:8081------'
+
+
+sudo apt install maven
