@@ -21,7 +21,7 @@ For viewing the design of the system click [here](reports/Assignment-3-Deploymen
 
 ## Author
 
-* **Kibria Shuvo** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+* **Kibria Shuvo** [github](https://github.com/kibriashuvo)
 
 
 

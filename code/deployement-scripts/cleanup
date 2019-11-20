@@ -6,6 +6,12 @@ sudo rm -r /usr/local/flink
 
 #Stopping Kafka and deleting the folder
 
+/usr/local/kafka/bin/kafka-server-stop.sh
+
+/usr/local/kafka/bin/zookeeper-server-stop.sh
+
+sudo rm -r /usr/local/kafka
+
 
 #Removing the target directory of Maven
 
