@@ -28,17 +28,17 @@ public class Customerstreamapp {
 	// parse user parameters
 	//ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
-	DataStream<String> messageStream = env.addSource(new FlinkKafkaConsumer<>("mytopic", new SimpleStringSchema(), properties));
+	DataStream<TaxiRideEvent> messageStream = env.addSource(new FlinkKafkaConsumer<>("mytopic", new TaxiRideSerializer(), properties));
 
 	// print() will write the contents of the stream to the TaskManager's standard out stream
 	// the rebelance call is causing a repartitioning of the data so that all machines
 	// see the messages (for example in cases when "num kafka partitions" < "num flink operators"
-	messageStream.rebalance().map(new MapFunction<String, String>() {
+	messageStream.rebalance().map(new MapFunction<TaxiRideEvent, String>() {
 		private static final long serialVersionUID = -6867736771747690202L;
 
 		@Override
-		public String map(String value) throws Exception {
-			return "Kafka and Flink says: " + value;
+		public String map(TaxiRideEvent event) throws Exception {
+			return "Kafka and Flink says: " + event.getStore_and_fwd_flag();
 		}
 	}).print();
 

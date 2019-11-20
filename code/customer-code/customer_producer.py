@@ -20,14 +20,15 @@ args = parser.parse_args()
 
 csv.field_size_limit(sys.maxsize)
 
-#producer = KafkaProducer(bootstrap_servers='localhost:9092')
+producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
 
 data = pd.read_csv(curr_path+"/../../data/yellow_tripdata_2019-01.csv",nrows=1000) 
 
 def f(x):
     a = x.to_json()
-    logging.info(json.dumps(a))
+    producer.send('mytopic',a.encode('utf-8'))
+    logging.info("Sent data packet")
 
 data.apply(f, axis=1)
 
