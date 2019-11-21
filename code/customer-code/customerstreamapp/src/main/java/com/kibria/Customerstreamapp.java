@@ -1,12 +1,13 @@
 package com.kibria;
 
-import org.apache.flink.api.common.functions.MapFunction;
+
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import java.util.Properties;
@@ -50,11 +51,18 @@ public class Customerstreamapp {
 
 	DataStream<TaxiRideEvent> messageStream = env.addSource(new FlinkKafkaConsumer<>("mytopic", new TaxiRideSerializer(), properties));
 
+
+	//Assigning timestamp to each event 
 	DataStream<TaxiRideEvent> msgStreamWithTSandWM = messageStream.assignTimestampsAndWatermarks(new MyExtractor());
 
 	DataStream<Tuple2<Integer,String>> tipByDestination = msgStreamWithTSandWM.
 															keyBy(r -> r.getDOLocationID()).
+															window(SlidingEventTimeWindows.of(Time.minutes(5),Time.minutes(1))).
 															process(new CalculateTipAmount());
+
+	//DataStream<Tuple2<Integer,String>> maxTipDest = tipByDestination.
+	//												timeWindowAll(Time.hours(1)).maxBy(2);
+	
 
 	// print() will write the contents of the stream to the TaskManager's standard out stream
 	// the rebelance call is causing a repartitioning of the data so that all machines
@@ -70,6 +78,8 @@ public class Customerstreamapp {
 	}).print();
 	*/
 	tipByDestination.print();
+	
+	//maxTipDest.print();
 	env.execute();
 
 
