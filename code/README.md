@@ -1,2 +1,6 @@
-# This directory is about the code.
->Note: we must be able to compile and/or run the code. No BINARY files are within the code. External libraries should be automatically downloaded (e.g., via Maven, npm, pip, docker pull)
+# Code Structure
+
+
+The directory `customer-code` contains all the customer related code including *Customerstreamapp* and *Customer_producer*
+
+The directory `deployment-scripts` contains all the bash scripts for deployint this project
