@@ -8,6 +8,8 @@ sudo rm -r /usr/local/flink
 
 /usr/local/kafka/bin/kafka-server-stop.sh
 
+sleep 20
+
 /usr/local/kafka/bin/zookeeper-server-stop.sh
 
 sudo rm -r /usr/local/kafka
