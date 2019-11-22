@@ -1,22 +1,36 @@
 package com.kibria;
 
 import org.apache.flink.api.common.functions.ReduceFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.util.Collector;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.Requests;
+import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
+import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
+import org.apache.flink.streaming.connectors.elasticsearch5.ElasticsearchSink;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 
 public class Customerstreamapp {
+
+	//========================Other Required Classes=================================
 
 	public static class MyExtractor
 		extends BoundedOutOfOrdernessTimestampExtractor<TaxiRideEvent> {
@@ -37,24 +51,55 @@ public class Customerstreamapp {
 			r1.setTip_amount(r1.getTip_amount() + r2.getTip_amount());
 		  	return r1;
 		}
-	  }
+	}
 	  
 	  private static class TotalTipForThisWindow extends ProcessWindowFunction<
-		TaxiRideEvent, Tuple2<Integer, String>, Integer, TimeWindow> {
+		TaxiRideEvent, Tuple3<Integer, Double, Long>, Integer, TimeWindow> {
 	  
 		@Override
 		public void process(
 		  Integer key,
 		  Context context,
 		  Iterable<TaxiRideEvent> summedTrip,
-		  Collector<Tuple2<Integer, String>> out) {
+		  Collector<Tuple3<Integer, Double, Long>> out) {
 			  	  
 		  TaxiRideEvent sum = summedTrip.iterator().next();
-		  out.collect(new Tuple2<>(key,"Total tip for this location = "+sum.getTip_amount()));
+		  //Key,SUM,end of window
+		  out.collect(new Tuple3<>(key,sum.getTip_amount(),context.window().getEnd()));
 		}
-	  }
+	}
+
+
+	public static class ESTotalTipInserter
+		implements ElasticsearchSinkFunction<Tuple3<Integer, Double, Long>> {
+
+		// construct index request
+		@Override
+		public void process(
+			Tuple3<Integer, Double, Long> record,
+			RuntimeContext ctx,
+			RequestIndexer indexer) {
+
+			// construct JSON document to index
+			Map<String, String> json = new HashMap<>();
+			json.put("time", record.f2.toString());         // timestamp
+			json.put("location", record.f0.toString());  // locatin id
+			json.put("sum", record.f1.toString());      // isStart
+		         
+
+			IndexRequest rqst = Requests.indexRequest()
+				.index("nyc-places")           // index name
+				.type("popular-locations")     // mapping name
+				.source(json);
+
+			indexer.add(rqst);
+		}
+	}
+
+	//========================Other Required Classes End=================================
 
 	public static void main(String[] args) throws Exception {
+	
 
 		// create execution environment
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -81,32 +126,42 @@ public class Customerstreamapp {
 		//Assigning timestamp to each event 
 		DataStream<TaxiRideEvent> msgStreamWithTSandWM = messageStream.assignTimestampsAndWatermarks(new MyExtractor());
 
-		DataStream<Tuple2<Integer,String>> tipByDestination = msgStreamWithTSandWM.
+		DataStream<Tuple3<Integer,Double,Long>> tipByDestination = msgStreamWithTSandWM.
 																keyBy(r -> r.getDOLocationID()).
 																window(SlidingEventTimeWindows.of(Time.hours(1),Time.minutes(30))).
+																//allowedLateness(Time.seconds(10)).
 																reduce(new ReduceBySummingTip(),new TotalTipForThisWindow());
 
 		//DataStream<Tuple2<Integer,String>> maxTipDest = tipByDestination.
 		//												timeWindowAll(Time.hours(1)).maxBy(2);
 		
 
-		// print() will write the contents of the stream to the TaskManager's standard out stream
-		// the rebelance call is causing a repartitioning of the data so that all machines
-		// see the messages (for example in cases when "num kafka partitions" < "num flink operators"
-		/*
-		messageStream.rebalance().map(new MapFunction<TaxiRideEvent, String>() {
-			private static final long serialVersionUID = -6867736771747690202L;
 
-			@Override
-			public String map(TaxiRideEvent event) throws Exception {
-				return "Kafka and Flink says: " + event.getStore_and_fwd_flag();
-			}
-		}).print();
-		*/
+		//==============Adding sink============================
+
+		//For elasticsearch
+
+		Map<String, String> config = new HashMap<>();
+		config.put("bulk.flush.max.actions", "1");   // flush inserts after every event
+		config.put("cluster.name", "elasticsearch"); // default cluster name
+
+	
+		List<InetSocketAddress> transportAddresses = new ArrayList<>();
+		transportAddresses.add(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9300));
+		
+	
+
+		
+		tipByDestination.addSink(
+			new ElasticsearchSink<>(config, transportAddresses, new ESTotalTipInserter()));
+		
+
+		//===================================================
+		
 		tipByDestination.print();
 		
 		//maxTipDest.print();
-		env.execute();
+		env.execute("Tips per location");
 
 		
 
