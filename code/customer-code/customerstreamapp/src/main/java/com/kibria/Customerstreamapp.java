@@ -83,12 +83,13 @@ public class Customerstreamapp {
 			// construct JSON document to index
 			Map<String, String> json = new HashMap<>();
 			json.put("time", record.f2.toString());         // timestamp
-			json.put("location", record.f0.toString());  // locatin id
+			json.put("location_id", record.f0.toString());  // locatin id
+			json.put("location", 40.75679016113281+","+-73.97203826904297);  // locatin id
 			json.put("sum", record.f1.toString());      // isStart
 		         
 
 			IndexRequest rqst = Requests.indexRequest()
-				.index("nyc-places")           // index name
+				.index("nyc-idx")           // index name
 				.type("popular-locations")     // mapping name
 				.source(json);
 
@@ -127,7 +128,7 @@ public class Customerstreamapp {
 		DataStream<TaxiRideEvent> msgStreamWithTSandWM = messageStream.assignTimestampsAndWatermarks(new MyExtractor());
 
 		DataStream<Tuple3<Integer,Double,Long>> tipByDestination = msgStreamWithTSandWM.
-																keyBy(r -> r.getDOLocationID()).
+																keyBy(r -> r.getPULocationID()).
 																window(SlidingEventTimeWindows.of(Time.hours(1),Time.minutes(30))).
 																//allowedLateness(Time.seconds(10)).
 																reduce(new ReduceBySummingTip(),new TotalTipForThisWindow());

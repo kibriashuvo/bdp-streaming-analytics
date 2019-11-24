@@ -16,6 +16,8 @@ For viewing the design of the system click [here](reports/Assignment-3-Deploymen
 
 * [Flink](https://flink.apache.org/) - As Streaming Framework 
 * [HBase](https://maven.apache.org/) - As the final sink 
+* [Elasticsearch](https://www.elastic.co/products/elasticsearch) - As Realtime Sink
+* [Kibana] (https://www.elastic.co/products/kibana) - As realtime Visualizer
 
 
 
