@@ -17,9 +17,8 @@ Incremental Aggegation to be more efficient, rather than buffering up events in 
 
 ## Part 1: Design for Streaming Analytics
 
----
 
-**Q1:** Select a dataset suitable for streaming analytics for a customer as a running example (thus the basic unit of the data should be a discrete record/event data). Explain the dataset and at least two different analytics for the customer: (i) a streaming analytics which analyzes streaming data from the customer (customerstreamapp) and (ii) a batch analytics which analyzes historical results outputted by the streaming analytics. 
+**Q1:** *Select a dataset suitable for streaming analytics for a customer as a running example (thus the basic unit of the data should be a discrete record/event data). Explain the dataset and at least two different analytics for the customer: (i) a streaming analytics which analyzes streaming data from the customer (customerstreamapp) and (ii) a batch analytics which analyzes historical results outputted by the streaming analytics.* 
 
 **Answer:** 
 
@@ -45,10 +44,14 @@ To be more clear, the taxi drivers will be able see the list of pickup locations
 
 **Batch analytics from the historical output of Streaming analytics:**
 
-For the batch analytics part, the drivers can see the pickup locations which resulted into highest tips by hourly, daily, weekly or even monthly.
+For the batch analytics part, the drivers can see the pickup locations which resulted into highest tips by hourly, daily, weekly or even monthly......
 
 
 
+**Q2:** *Customers will send data through message brokers/messaging systems which become data stream sources. Discuss and explain the following aspects for the streaming analytics: (i) should the analytics handle keyed or non-keyed data streams for the customer data, and (ii) which types of delivery guarantees should be suitable.*
+
+**Answer** 
+i. The analytics should handle *keyed* data stream. Because, the analytics is going to calculate total tips of all the trips starting from a particular pickup location. So, to calculate this we must  
 
 
 

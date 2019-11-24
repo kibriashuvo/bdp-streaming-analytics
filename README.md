@@ -10,7 +10,7 @@ For Deployment guidelines click [here](reports/Assignment-3-Deployment.md)
 
 ## Design
 
-For viewing the design of the system click [here](reports/Assignment-3-Deployment.md)
+For viewing the design of the system click [here](reports/Assignment-3-Design.md)
 
 ## Built With
 
