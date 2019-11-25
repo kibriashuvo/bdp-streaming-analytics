@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import redis.clients.jedis.Jedis;
+
 
 public class Customerstreamapp {
 
@@ -72,7 +74,10 @@ public class Customerstreamapp {
 
 	public static class ESTotalTipInserter
 		implements ElasticsearchSinkFunction<Tuple3<Integer, Double, Long>> {
+		
+		
 
+		
 		// construct index request
 		@Override
 		public void process(
@@ -80,11 +85,12 @@ public class Customerstreamapp {
 			RuntimeContext ctx,
 			RequestIndexer indexer) {
 
+			Jedis jedis = new Jedis("localhost", 6379);
 			// construct JSON document to index
 			Map<String, String> json = new HashMap<>();
 			json.put("time", record.f2.toString());         // timestamp
 			json.put("location_id", record.f0.toString());  // locatin id
-			json.put("location", 40.75679016113281+","+-73.97203826904297);  // locatin id
+			json.put("location", jedis.get(record.f0.toString()));  // location co-ordinate
 			json.put("sum", record.f1.toString());      // isStart
 		         
 
@@ -100,6 +106,15 @@ public class Customerstreamapp {
 	//========================Other Required Classes End=================================
 
 	public static void main(String[] args) throws Exception {
+
+		//====================================Initialize Redis =================================
+
+		
+
+
+		//===================================================
+
+
 	
 
 		// create execution environment
@@ -160,11 +175,11 @@ public class Customerstreamapp {
 		//===================================================
 		
 		tipByDestination.print();
+
 		
 		//maxTipDest.print();
 		env.execute("Tips per location");
 
-		
 
 
 	
