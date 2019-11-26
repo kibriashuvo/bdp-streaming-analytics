@@ -1,0 +1,24 @@
+#Creating schema for mysimpbdp-coredms (sink)
+
+curl -XPUT "http://localhost:9200/nyc-idx"
+
+
+
+curl -XPUT "http://localhost:9200/nyc-idx/_mapping/popular-locations" -d'{
+  "popular-locations": {
+    "properties": {
+      "sum": {
+        "type": "double"
+      },
+      "location_id": {
+        "type": "integer"
+      },
+      "location": {
+        "type": "geo_point"
+      },
+      "time": {
+        "type": "date"
+      }
+    }
+  }
+}'

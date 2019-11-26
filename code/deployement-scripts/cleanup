@@ -20,3 +20,10 @@ sudo rm -r /usr/local/kafka
 rm -r code/customer-code/customerstreamapp/target/
 
 echo '-------Cleanup complete--------'
+
+
+#Removing kibana & elasticsearch
+
+sudo rm -r /usr/local/kibana
+
+sudo rm -r /usr/local/elasticsearch

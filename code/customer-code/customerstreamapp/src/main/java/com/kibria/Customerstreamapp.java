@@ -107,14 +107,6 @@ public class Customerstreamapp {
 
 	public static void main(String[] args) throws Exception {
 
-		//====================================Initialize Redis =================================
-
-		
-
-
-		//===================================================
-
-
 	
 
 		// create execution environment

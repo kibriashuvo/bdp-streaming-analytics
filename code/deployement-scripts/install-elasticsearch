@@ -1,0 +1,10 @@
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.0.tar.gz
+
+tar xvzf elasticsearch-5.6.0.tar.gz
+
+rm elasticsearch-5.6.0.tar.gz
+
+sudo mv elasticsearch-5.6.0 /usr/local/elasticsearch
+
+/usr/local/elasticsearch/bin/elasticsearch &
+
