@@ -1,5 +1,8 @@
 import json
 import redis
+import os
+
+curr_path = os.path.dirname(os.path.abspath(__file__))
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -12,8 +15,10 @@ def truncate_redis():
     r.flushdb()
 
 
+
+
 def populate_redis():
-    with open('/home/kibria/BDP/taxi_zones/nyu-2451-36743-geojson.json') as f:
+    with open(curr_path+"/../../data/nyu-2451-36743-geojson.json") as f:
         data = json.load(f)
 
     for feature in data['features']:    
@@ -24,4 +29,4 @@ def populate_redis():
         r.set(str(location_id),str(lat)+ ","+str(lon))
 
 
-view_all()
+populate_redis()

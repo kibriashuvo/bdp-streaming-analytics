@@ -1,0 +1,8 @@
+#Downloading geoJOSN from NYU
+
+wget https://geo.nyu.edu/download/file/nyu-2451-36743-geojson.json -P data/
+
+
+#Downloading Yellow Taxi Trip Record for Jan 2019 (655MB)
+
+wget https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2019-01.csv -P data/

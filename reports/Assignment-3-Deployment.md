@@ -5,9 +5,10 @@
 
 ## Requirements
 * OS: Linux (Ubuntu 18.04)
+* Docker
 * `Flink` (v1.9.1)
-* `HBase` (v1.4.10)
 * Python (v3.6.*)
+* Maven
 
 ## Installation 
 **All the commands below should be run from the root directory of the repository. Some of the bash scipts require root access. Please provide the root credentials**

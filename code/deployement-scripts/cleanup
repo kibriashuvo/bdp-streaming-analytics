@@ -27,3 +27,11 @@ echo '-------Cleanup complete--------'
 sudo rm -r /usr/local/kibana
 
 sudo rm -r /usr/local/elasticsearch
+
+
+#Stopping Redis
+
+docker stop redis1
+
+docker rm redis1
+

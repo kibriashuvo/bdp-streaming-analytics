@@ -1,6 +1,7 @@
 code/customer-code/customerstreamapp/target/
 .vscode
 data/yellow_tripdata_2019-01.csv
+data/nyu-2451-36743-geojson.json
 logs/*
 code/customer-code/customerstreamapp/.settings
 code/customer-code/customerstreamapp/.classpath

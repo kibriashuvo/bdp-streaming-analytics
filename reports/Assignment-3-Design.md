@@ -26,7 +26,7 @@ The dataset that I have used here contains in total 18 fields of which we are mo
 
 (Note: A list of the explanation of each individal fields can be found [here](https://data.cityofnewyork.us/api/views/t29m-gskq/files/89042b9b-8280-4339-bda2-d68f428a7499?download=true&filename=data_dictionary_trip_records_yellow.pdf))
 
-Previously, this dataset used to include the latitude and longitude of the pickup and dropoff locations, but in the latest versions they have removed these attributes. Instead they are providing locationID (1 through 263) from the pickup and dropoff locations as they have divided the whole NYC into 263 locations.
+Previously, this dataset used to include the latitude and longitude of the pickup and dropoff locations, but in the latest versions they have removed these attributes. Instead they are providing locationID (1 through 263) from the pickup and dropoff locations as they have divided the whole NYC into 263 locations. However, a [geoJSON format](https://geo.nyu.edu/catalog/nyu-2451-36743) of the 263 zones can be found in the Spatial Data Repository of **New York University (NYU)**
 
 **Streaming analytics:**
 
