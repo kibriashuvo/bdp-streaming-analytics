@@ -8,3 +8,4 @@ sudo mv elasticsearch-5.6.0 /usr/local/elasticsearch
 
 /usr/local/elasticsearch/bin/elasticsearch &
 
+sleep 10

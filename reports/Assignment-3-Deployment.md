@@ -6,7 +6,11 @@
 ## Requirements
 * OS: Linux (Ubuntu 18.04)
 * Docker
-* `Flink` (v1.9.1)
+* Flink (v1.9.1)
+* Kafka (v2.12)
+* Elasticsearch (v5.6.0)
+* Kibana (v5.6.0)
+* Redis
 * Python (v3.6.*)
 * Maven
 

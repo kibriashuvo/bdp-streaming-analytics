@@ -1,0 +1,9 @@
+code/deployment-scripts/install-flink
+
+code/deployment-scripts/install-kafka
+
+code/deployment-scripts/install-elasticsearch
+
+code/deployment-scripts/install-kibana
+
+code/deployment-scripts/install-redis

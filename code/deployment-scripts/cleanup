@@ -35,3 +35,6 @@ docker stop redis1
 
 docker rm redis1
 
+#Deleting data
+
+rm data/*
