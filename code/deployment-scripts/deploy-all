@@ -7,3 +7,7 @@ code/deployment-scripts/install-elasticsearch
 code/deployment-scripts/install-kibana
 
 code/deployment-scripts/install-redis
+
+code/deployment-scripts/download-testdata
+
+echo '-------Deployment completed-------'

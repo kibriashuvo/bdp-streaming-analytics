@@ -19,7 +19,7 @@ sudo rm -r /usr/local/kafka
 
 rm -r code/customer-code/customerstreamapp/target/
 
-echo '-------Cleanup complete--------'
+
 
 
 #Removing kibana & elasticsearch
@@ -38,3 +38,6 @@ docker rm redis1
 #Deleting data
 
 rm data/*
+
+
+echo '-------Cleanup complete--------'

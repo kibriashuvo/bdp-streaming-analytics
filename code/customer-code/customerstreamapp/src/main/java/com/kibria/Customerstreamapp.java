@@ -1,5 +1,6 @@
 package com.kibria;
 
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -12,6 +13,7 @@ import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindow
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
@@ -32,6 +34,7 @@ import redis.clients.jedis.Jedis;
 
 public class Customerstreamapp {
 
+	 
 	//========================Other Required Classes=================================
 
 	public static class MyExtractor
@@ -86,6 +89,7 @@ public class Customerstreamapp {
 			RequestIndexer indexer) {
 
 			Jedis jedis = new Jedis("localhost", 6379);
+
 			// construct JSON document to index
 			Map<String, String> json = new HashMap<>();
 			json.put("time", record.f2.toString());         // timestamp
@@ -159,7 +163,10 @@ public class Customerstreamapp {
 		
 	
 
+	
 		
+
+
 		tipByDestination.addSink(
 			new ElasticsearchSink<>(config, transportAddresses, new ESTotalTipInserter()));
 		

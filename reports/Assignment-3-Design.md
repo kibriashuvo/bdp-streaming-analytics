@@ -20,7 +20,6 @@ Particularly, I have used the dataset for yellow taxi cabs for the month *Januar
 The dataset that I have used here contains in total 18 fields of which we are mostly interested in the following fields - 
 
 * *tpep_pickup_datetime* - When the meter is started
-* *tpep_dropoff_datetime* - When the meter was disengaged
 * *DOLocationID* - Dropoff location ID
 * *tip_amount* - The amount of tip given by the passenger by credit card payment
 

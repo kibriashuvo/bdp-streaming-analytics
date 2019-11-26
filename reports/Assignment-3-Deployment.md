@@ -11,24 +11,71 @@
 * Elasticsearch (v5.6.0)
 * Kibana (v5.6.0)
 * Redis
-* Python (v3.6.*)
+* Python (v3.*)
 * Maven
 
-## Installation 
-**All the commands below should be run from the root directory of the repository. Some of the bash scipts require root access. Please provide the root credentials**
+**Install `Maven`**
+```bash
+    sudo apt install maven    
+```
 
-###### Install `flink`
+**Install `OpenJDK8`**
+```bash
+    udo apt install openjdk-8-jdk
+```    
+
+**Install `Docker`**
+For installing Docker please follow the instructions [here](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04)
+
+**Install `Python`**
+For installing Python please follow the instructions [here](http://ubuntuhandbook.org/index.php/2019/02/install-python-3-7-ubuntu-18-04/)
+
+## Deployment 
+Note:All the commands below should be run from the **root directory of the repository**. Some of the bash scipts require root access. So, if asked, please provide the root credentials.
+
+**The following script will deploy the whole pipeline and download test data**
 
 ```bash
- code/deployement-scripts/install-flink
+ code/deployment-scripts/deploy-all
+```
+
+
+## Running the pipeline
+
+
+Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
+
+```bash
+code/customer-code/coredms-schema-upload
+```
+
+**Transform the location id ==> (lat,lon) pairs and Populating `Redis`**
+
+```bash
+python3 code/customer-code/customer_transformer.py
+```
+
+
+**Running Customerstreamapp**
+
+```bash
+code/customer-code/run-customerstreamapp
+```
+
+
+**Starting streaming customer data to `kafka`**
+
+```bash
+python3 code/customer-code/customer_producer.py
 ```
 
 
 
-###### For cleanup (Removing all)
+
+## For cleanup (Removing all)
 
 ```bash
- code/deployement-scripts/cleanup
+ code/deployment-scripts/cleanup
 ```
 
 
