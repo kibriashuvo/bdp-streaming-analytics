@@ -21,7 +21,7 @@
 
 **Install `OpenJDK8`**
 ```bash
-    udo apt install openjdk-8-jdk
+    sudo apt install openjdk-8-jdk
 ```    
 
 **Install `Docker`**
