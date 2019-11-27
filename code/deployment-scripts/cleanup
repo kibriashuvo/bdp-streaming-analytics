@@ -37,7 +37,7 @@ docker rm redis1
 
 #Deleting data
 
-rm data/*
+#rm data/*
 
 
 echo '-------Cleanup complete--------'

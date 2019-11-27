@@ -10,18 +10,18 @@
 * Kafka (v2.12)
 * Elasticsearch (v5.6.0)
 * Kibana (v5.6.0)
-* Redis
+* Redis (Latest Docker image)
 * Python (v3.*)
-* Maven
+
 
 **Install `Maven`**
 ```bash
-    sudo apt install maven    
+  sudo apt install maven    
 ```
 
 **Install `OpenJDK8`**
 ```bash
-    sudo apt install openjdk-8-jdk
+  sudo apt install openjdk-8-jdk
 ```    
 
 **Install `Docker`**
@@ -29,6 +29,13 @@ For installing Docker please follow the instructions [here](https://www.digitalo
 
 **Install `Python`**
 For installing Python please follow the instructions [here](http://ubuntuhandbook.org/index.php/2019/02/install-python-3-7-ubuntu-18-04/)
+
+**Install `pip3`**
+```bash
+ sudo apt install python3-pip
+ pip3 install -r code/customer-code/requirements.txt
+```    
+
 
 ## Deployment 
 Note:All the commands below should be run from the **root directory of the repository**. Some of the bash scipts require root access. So, if asked, please provide the root credentials.
@@ -46,27 +53,27 @@ Note:All the commands below should be run from the **root directory of the repos
 Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
 
 ```bash
-code/customer-code/coredms-schema-upload
+ code/customer-code/coredms-schema-upload
 ```
 
 **Transform the location id ==> (lat,lon) pairs and Populating `Redis`**
 
 ```bash
-python3 code/customer-code/customer_transformer.py
+ python3 code/customer-code/customer_transformer.py
 ```
 
 
 **Running Customerstreamapp**
 
 ```bash
-code/customer-code/run-customerstreamapp
+ code/customer-code/run-customerstreamapp
 ```
 
 
 **Starting streaming customer data to `kafka`**
 
 ```bash
-python3 code/customer-code/customer_producer.py
+ python3 code/customer-code/customer_producer.py
 ```
 
 

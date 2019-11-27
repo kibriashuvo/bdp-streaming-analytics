@@ -7,7 +7,7 @@ curl -XPUT "http://localhost:9200/nyc-idx"
 curl -XPUT "http://localhost:9200/nyc-idx/_mapping/popular-locations" -d'{
   "popular-locations": {
     "properties": {
-      "sum": {
+      "total_tip": {
         "type": "double"
       },
       "location_id": {

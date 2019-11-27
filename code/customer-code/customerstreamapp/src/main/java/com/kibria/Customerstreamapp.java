@@ -3,6 +3,7 @@ package com.kibria;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -12,7 +13,7 @@ import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
 import org.elasticsearch.action.index.IndexRequest;
@@ -28,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import redis.clients.jedis.Jedis;
 
@@ -95,7 +98,7 @@ public class Customerstreamapp {
 			json.put("time", record.f2.toString());         // timestamp
 			json.put("location_id", record.f0.toString());  // locatin id
 			json.put("location", jedis.get(record.f0.toString()));  // location co-ordinate
-			json.put("sum", record.f1.toString());      // isStart
+			json.put("total_tip", record.f1.toString());      // isStart
 		         
 
 			IndexRequest rqst = Requests.indexRequest()
@@ -132,7 +135,7 @@ public class Customerstreamapp {
 		// parse user parameters
 		//ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
-		DataStream<TaxiRideEvent> messageStream = env.addSource(new FlinkKafkaConsumer<>("mytopic", new TaxiRideSerializer(), properties));
+		DataStream<TaxiRideEvent> messageStream = env.addSource(new FlinkKafkaConsumer011<>("mytopic", new TaxiRideSerializer(), properties));
 
 
 		//Assigning timestamp to each event 
@@ -163,17 +166,48 @@ public class Customerstreamapp {
 		
 	
 
-	
-		
-
-
 		tipByDestination.addSink(
 			new ElasticsearchSink<>(config, transportAddresses, new ESTotalTipInserter()));
 		
 
 		//===================================================
 		
-		tipByDestination.print();
+		//========================disseminating result back to customer=================
+
+
+		FlinkKafkaProducer011<String> myProducer = new FlinkKafkaProducer011<String>(
+			"localhost:9092",            // broker list
+			"customer_realtime_topic",                  // target topic
+			new SimpleStringSchema()); 
+		tipByDestination.map(new MapFunction<Tuple3<Integer,Double,Long>,String>() {
+
+			@Override
+			public String map(Tuple3<Integer, Double, Long> record) throws Exception {				
+				//Jedis jedis = new Jedis("localhost", 6379);
+				ObjectMapper mapperObj = new ObjectMapper();
+
+				// construct JSON document to index
+				Map<String, String> json = new HashMap<>();
+				//json.put("time", record.f2.toString());         // timestamp
+				json.put("location_id", record.f0.toString());  // locatin id
+				//json.put("location", jedis.get(record.f0.toString()));  // location co-ordinate
+				json.put("total_tip", record.f1.toString());      // isStart
+
+				
+				String jsonResp = mapperObj.writeValueAsString(json);
+				
+				return jsonResp;
+				
+
+			}
+			
+		}).addSink(myProducer);
+
+
+		
+		
+
+		
 
 		
 		//maxTipDest.print();

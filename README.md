@@ -1,4 +1,4 @@
-# Assignment 3  801649
+# Assignment 3 801649
 
 This is a implementation of a Streaming Analytics System using `Apache Flink`. 
 
@@ -15,8 +15,10 @@ For viewing the design of the system click [here](reports/Assignment-3-Design.md
 ## Built With
 
 * [Flink](https://flink.apache.org/) - As Streaming Framework
+* [Kafka](https://kafka.apache.org/) - As Message Broker
 * [Elasticsearch](https://www.elastic.co/products/elasticsearch) - As Final Sink
-* [Kibana] (https://www.elastic.co/products/kibana) - As realtime Visualizer
+* [Kibana](https://www.elastic.co/products/kibana) - As realtime Visualizer
+* [Redis](https://redis.io/)
 
 
 
