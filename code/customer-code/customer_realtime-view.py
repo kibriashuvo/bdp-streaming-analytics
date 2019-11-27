@@ -1,7 +1,9 @@
-from kafka import KafkaConsumer
-from json import loads
+import json
 import pandas as pd
 import matplotlib.pyplot as plt
+import redis
+
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 
 df = pd.DataFrame({'location_id': [], 'total_tip': []})
@@ -14,24 +16,33 @@ print(df)
 
 def updateOutputPlot(location_id,total_tip):
     df.iat[location_id-1,1] = total_tip
-    #df.plot(kind='bar',x='location_id',y='total_tip')
-    #plt.savefig("test.png")
+
+    #Getting the top 5 tip earning areas    
     df_plot = df.nlargest(5, 'total_tip')
     print(df_plot)
     #df_plot.plot(kind='bar',x='location_id',y='total_tip')
     #plt.savefig("test.png")
 
+def updateDataframe(location_id,total_tip):
+    df.iat[location_id-1,1] = total_tip
+    #Getting the top 5 tip earning areas 
+    df_plot = df.nlargest(5, 'total_tip')
+    
+    df_plot.plot(kind='bar',x='location_id',y='total_tip',color=['black', 'red', 'green', 'blue', 'cyan'])
+    plt.savefig("test.png")
+    plt.clf()
+
+    print(df_plot)
 
 
-consumer = KafkaConsumer(
-    'customer_realtime_topic',
-     bootstrap_servers=['localhost:9092'],
-     auto_offset_reset='earliest',
-     enable_auto_commit=True,
-     group_id='my-group',
-     value_deserializer=lambda x: loads(x.decode('utf-8')))
 
-for message in consumer:
-    message = message.value
-    updateOutputPlot(int(message['location_id']),float(message['total_tip']))  
-    print('{} added to'.format(message))
+for i in range(1,264):
+    key = "L"+str(i)
+    value = r.get(key)
+    if value is not None:
+        #obj = value.decode('utf-8')
+        obj = json.loads(value.decode('utf-8'))
+        updateDataframe(int(obj['location_id']),float(obj['total_tip']))
+
+    
+    

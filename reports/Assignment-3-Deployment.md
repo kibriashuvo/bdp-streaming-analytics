@@ -13,6 +13,7 @@
 * Redis (Latest Docker image)
 * Python (v3.*)
 
+**Note:** All the commands below should be run from the **root directory of the repository**. Some of the bash scipts require root access. So, if asked, please provide the root credentials.
 
 **Install `Maven`**
 ```bash
@@ -36,15 +37,17 @@ For installing Python please follow the instructions [here](http://ubuntuhandboo
 ```bash
  sudo apt install python3-pip
  pip3 install -r code/customer-code/requirements.txt
+ 
 ```    
 
 
 ## Deployment 
-Note:All the commands below should be run from the **root directory of the repository**. Some of the bash scipts require root access. So, if asked, please provide the root credentials.
+
 
 **The following script will deploy the whole pipeline and download test data**
 
 ```bash
+ 
  code/deployment-scripts/deploy-all
 ```
 
