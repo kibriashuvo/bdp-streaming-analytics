@@ -1,10 +1,8 @@
 package com.kibria;
 
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
+
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
@@ -26,14 +24,20 @@ public class CalculateTipAmount extends ProcessWindowFunction<TaxiRideEvent,Tupl
     
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 1320509485510749146L;
+
+    /**
      * Evaluates the window and outputs none or several elements.
      *
-     * @param key The key for which this window is evaluated.
-     * @param context The context in which the window is being evaluated.
+     * @param key      The key for which this window is evaluated.
+     * @param context  The context in which the window is being evaluated.
      * @param elements The elements in the window being evaluated.
-     * @param out A collector for emitting elements.
+     * @param out      A collector for emitting elements.
      *
-     * @throws Exception The function may throw exceptions to fail the program and trigger recovery.
+     * @throws Exception The function may throw exceptions to fail the program and
+     *                   trigger recovery.
      */
     @Override
     public void process(Integer key,

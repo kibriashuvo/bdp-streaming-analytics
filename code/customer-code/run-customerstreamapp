@@ -1,4 +1,8 @@
+cd code/customer-code/customerstreamapp/
+
 mvn clean package
+
+cd .. && cd .. && cd ..
 
 /usr/local/flink/bin/flink run -c com.kibria.Customerstreamapp code/customer-code/customerstreamapp/target/customerstreamapp-1.0.jar
 

@@ -25,9 +25,11 @@
 ```    
 
 **Install `Docker`**
+
 For installing Docker please follow the instructions [here](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04)
 
 **Install `Python`**
+
 For installing Python please follow the instructions [here](http://ubuntuhandbook.org/index.php/2019/02/install-python-3-7-ubuntu-18-04/)
 
 **Install `pip3`**
@@ -67,6 +69,12 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
 
 ```bash
  code/customer-code/run-customerstreamapp
+```
+
+**Running Customer Real Timeview**
+
+```bash
+ python3 code/customer-code/customer_realtime-view.py
 ```
 
 

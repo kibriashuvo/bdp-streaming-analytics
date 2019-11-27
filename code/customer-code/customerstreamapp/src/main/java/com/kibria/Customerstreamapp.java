@@ -3,7 +3,8 @@ package com.kibria;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.api.common.serialization.SimpleStringSchema;
+
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -14,7 +15,12 @@ import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindow
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
+
+import org.apache.flink.streaming.connectors.redis.RedisSink;
+import org.apache.flink.streaming.connectors.redis.common.config.FlinkJedisPoolConfig;
+import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommand;
+import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommandDescription;
+import org.apache.flink.streaming.connectors.redis.common.mapper.RedisMapper;
 import org.apache.flink.util.Collector;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
@@ -43,6 +49,11 @@ public class Customerstreamapp {
 	public static class MyExtractor
 		extends BoundedOutOfOrdernessTimestampExtractor<TaxiRideEvent> {
 
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = -3744524525689156834L;
+
 		public MyExtractor() {
 			super(Time.seconds(10));
 		}
@@ -54,6 +65,11 @@ public class Customerstreamapp {
 	}
 
 	private static class ReduceBySummingTip implements ReduceFunction<TaxiRideEvent> {
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 8381252998852833752L;
+
 		public TaxiRideEvent reduce(TaxiRideEvent r1, TaxiRideEvent r2) {
 			//Combining the tip and setting it to r1 and then returning r1
 			r1.setTip_amount(r1.getTip_amount() + r2.getTip_amount());
@@ -64,6 +80,11 @@ public class Customerstreamapp {
 	  private static class TotalTipForThisWindow extends ProcessWindowFunction<
 		TaxiRideEvent, Tuple3<Integer, Double, Long>, Integer, TimeWindow> {
 	  
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 3969223284652012611L;
+
 		@Override
 		public void process(
 		  Integer key,
@@ -80,10 +101,13 @@ public class Customerstreamapp {
 
 	public static class ESTotalTipInserter
 		implements ElasticsearchSinkFunction<Tuple3<Integer, Double, Long>> {
-		
-		
 
 		
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = -8675408720987118260L;
+
 		// construct index request
 		@Override
 		public void process(
@@ -107,6 +131,31 @@ public class Customerstreamapp {
 				.source(json);
 
 			indexer.add(rqst);
+			jedis.close();
+		}
+	}
+
+
+	public static class RedisExampleMapper implements RedisMapper<Tuple2<String, String>>{
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 5577018346101627548L;
+
+		@Override
+		public RedisCommandDescription getCommandDescription() {
+			return new RedisCommandDescription(RedisCommand.SET);
+		}
+	
+		@Override
+		public String getKeyFromData(Tuple2<String, String> data) {
+			return data.f0;
+		}
+	
+		@Override
+		public String getValueFromData(Tuple2<String, String> data) {
+			return data.f1;
 		}
 	}
 
@@ -167,7 +216,8 @@ public class Customerstreamapp {
 	
 
 		tipByDestination.addSink(
-			new ElasticsearchSink<>(config, transportAddresses, new ESTotalTipInserter()));
+			new ElasticsearchSink<>(config, transportAddresses, new ESTotalTipInserter()))
+			.name("Elasticsearch(Batch)");
 		
 
 		//===================================================
@@ -175,41 +225,48 @@ public class Customerstreamapp {
 		//========================disseminating result back to customer=================
 
 
+		/*
 		FlinkKafkaProducer011<String> myProducer = new FlinkKafkaProducer011<String>(
 			"localhost:9092",            // broker list
 			"customer_realtime_topic",                  // target topic
 			new SimpleStringSchema()); 
-		tipByDestination.map(new MapFunction<Tuple3<Integer,Double,Long>,String>() {
+
+		*/
+
+		FlinkJedisPoolConfig conf = new FlinkJedisPoolConfig.Builder().setHost("127.0.0.1").build();
+
+
+		//Mapping T3 to T2
+		tipByDestination.map(new MapFunction<Tuple3<Integer,Double,Long>,Tuple2<String,String>>() {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = -7375869054845432499L;
 
 			@Override
-			public String map(Tuple3<Integer, Double, Long> record) throws Exception {				
-				//Jedis jedis = new Jedis("localhost", 6379);
+			public Tuple2<String,String> map(Tuple3<Integer, Double, Long> record) throws Exception {				
+				
 				ObjectMapper mapperObj = new ObjectMapper();
 
 				// construct JSON document to index
 				Map<String, String> json = new HashMap<>();
 				//json.put("time", record.f2.toString());         // timestamp
-				json.put("location_id", record.f0.toString());  // locatin id
+				json.put("location_id", record.f0.toString());  // location id
 				//json.put("location", jedis.get(record.f0.toString()));  // location co-ordinate
 				json.put("total_tip", record.f1.toString());      // isStart
 
 				
 				String jsonResp = mapperObj.writeValueAsString(json);
 				
-				return jsonResp;
+				return new Tuple2<>("L"+record.f0.toString(),jsonResp);
 				
 
 			}
 			
-		}).addSink(myProducer);
-
-
-		
+		}).addSink(new RedisSink<Tuple2<String, String>>(conf, new RedisExampleMapper())).name("Realtime View(Redis)");
 		
 
-		
-
-		
 		//maxTipDest.print();
 		env.execute("Tips per location");
 

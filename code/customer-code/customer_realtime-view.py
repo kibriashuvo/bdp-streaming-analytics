@@ -12,16 +12,14 @@ print(df)
 
 
 
-
-
-
 def updateOutputPlot(location_id,total_tip):
     df.iat[location_id-1,1] = total_tip
     #df.plot(kind='bar',x='location_id',y='total_tip')
     #plt.savefig("test.png")
     df_plot = df.nlargest(5, 'total_tip')
-    df_plot.plot(kind='bar',x='location_id',y='total_tip')
-    plt.savefig("test.png")
+    print(df_plot)
+    #df_plot.plot(kind='bar',x='location_id',y='total_tip')
+    #plt.savefig("test.png")
 
 
 
@@ -35,5 +33,5 @@ consumer = KafkaConsumer(
 
 for message in consumer:
     message = message.value
-    updateOutputPlot(int(message['location_id']),int(message['total_tip']))  
+    updateOutputPlot(int(message['location_id']),float(message['total_tip']))  
     print('{} added to'.format(message))
