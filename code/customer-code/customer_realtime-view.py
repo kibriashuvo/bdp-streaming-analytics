@@ -1,9 +1,11 @@
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
-import redis
+import redis,os
 
 r = redis.Redis(host='localhost', port=6379, db=0)
+
+curr_path = os.path.dirname(os.path.abspath(__file__))
 
 
 df = pd.DataFrame({'location_id': [], 'total_tip': []})
@@ -29,7 +31,7 @@ def updateDataframe(location_id,total_tip):
     df_plot = df.nlargest(5, 'total_tip')
     
     df_plot.plot(kind='bar',x='location_id',y='total_tip',color=['black', 'red', 'green', 'blue', 'cyan'])
-    plt.savefig("test.png")
+    plt.savefig(curr_path+"/../../reports/near-realtime_results/near-realtime-bar-chart.png")
     plt.clf()
 
     print(df_plot)
