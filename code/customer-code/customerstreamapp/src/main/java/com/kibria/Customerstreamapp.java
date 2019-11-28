@@ -185,7 +185,7 @@ public class Customerstreamapp {
 		// parse user parameters
 		//ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
-		DataStream<TaxiRideEvent> messageStream = env.addSource(new FlinkKafkaConsumer011<>("mytopic", new TaxiRideSerializer(), properties));
+		DataStream<TaxiRideEvent> messageStream = env.addSource(new FlinkKafkaConsumer011<>("customerstreamapp-input", new TaxiRideSerializer(), properties));
 
 
 		//Assigning timestamp to each event 
@@ -252,10 +252,8 @@ public class Customerstreamapp {
 				ObjectMapper mapperObj = new ObjectMapper();
 
 				// construct JSON document to index
-				Map<String, String> json = new HashMap<>();
-				//json.put("time", record.f2.toString());         // timestamp
-				json.put("location_id", record.f0.toString());  // location id
-				//json.put("location", jedis.get(record.f0.toString()));  // location co-ordinate
+				Map<String, String> json = new HashMap<>();				
+				json.put("location_id", record.f0.toString());  // location id			
 				json.put("total_tip", record.f1.toString());      // isStart
 
 				

@@ -27,7 +27,7 @@ data = pd.read_csv(curr_path+"/../../data/yellow_tripdata_2019-01.csv",nrows=100
 
 def f(x):
     a = x.to_json()
-    producer.send('mytopic',a.encode('utf-8'))
+    producer.send('customerstreamapp-input',a.encode('utf-8'))
     logging.info("Sent data packet")
 
 data.apply(f, axis=1)
