@@ -1,12 +1,3 @@
-
-I want to compute max tips per 15 mins computed in every 5 mins, keyed by location id
-
-When tip was maximum customer behavior
-
-
-
-Incremental Aggegation to be more efficient, rather than buffering up events in a window
-
 ## Part 1: Design for Streaming Analytics
 
 
@@ -92,7 +83,7 @@ overlap
 Result materialization
 
 
-**Q4** Explain which performance metrics would be important for the streaming analytics for your customer cases
+**Q4:** Explain which performance metrics would be important for the streaming analytics for your customer cases
 
 **Answer:**
 
@@ -104,7 +95,7 @@ So, for this streaming analytics to be reliable for my customers, it has make su
 
 Although, by no means, the analysis above implies that *latency* is not an important metric for my customers. As for any streaming analytics application the goal is to achieve lower latency and higher throughput. But in case of my streaming analytics the importance of **throughput** outweighs *latency*. 
 
-**Q5** *Provide a design of your architecture for the streaming analytics service in which you clarify: customer data sources, mysimbdp message brokers, mysimbdp streaming computing service, customer streaming analytics app, mysimbdp-coredms, and other components, if needed.*
+**Q5:** *Provide a design of your architecture for the streaming analytics service in which you clarify: customer data sources, mysimbdp message brokers, mysimbdp streaming computing service, customer streaming analytics app, mysimbdp-coredms, and other components, if needed.*
 
 **Answer:**
 
@@ -168,8 +159,48 @@ On the other end, **customerstreamapp** has a class called [TaxiRideEvent.java](
 **Customerstreamapp** has a **deserializer** class [TaxiRideSerializer.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideSerializer.java) which takes the JSON string read from `Kafka` topic and converts it to a **POJO** (TaxiRideEvent in this case).
 
 
+**Q2:** Explain the key logic of functions for processing events/records in customerstreamapp in your implementation
 
+**Answer:**
 
+My streaming analytics application uses `Apache Flink` as its stream processing engine and I used Java to implement a DataStream program using Flink's [*DataStream API*](https://ci.apache.org/projects/flink/flink-docs-release-1.9/dev/datastream_api.html), where data streams are generated from various sources and the results are returned via sinks. 
+
+1. In my **customerstreamapp** first we define a new *StreamExecutionEnvironment* and then configure it to consider *Event time* for processing the event stream. 
+![eventTime](images/eventTime.PNG)
+
+2. Then we configure a `Kafka` consumer namely *FlinkKafkaConsumer011* and subcribe to the topic 
+*customerstreamapp-input*. We also pass our deseializer class *TaxiRideSerializer* to the consumer so that it can deserialize the JSON event stream to convert them into POJO. This completes our event stream source setup and we get a *DataStream* of *TaxiRideEvents*.
+![eventTime](images/kafkaSource.PNG)
+
+3. Next we define the process of generating **Watermarks** for the *DataStream* that we had just created.
+![eventTime](images/callingMyExtractor.PNG)
+The class *MyExtractor* is called for generating these **Watermarks**, which is extracted from the *Dropoff time** of the taxi events. Here I can also specify (in the constructor) the amount of lateness allowed before the window is materialized.
+![eventTime](images/MyExtractor.PNG)
+
+4. After that, I key the *DataStream* using location_id of the events and then assign them to a **sliding window** of 1 hour which slides by 30 minutes (Tests will include results of varting window size). I include a **trigger** which fires whenever a new event arrives in the window. Finally I pass the *DataStream* through a reduce function which processes the event stream. 
+![eventTime](images/keying.PNG)
+
+5. As it can be seen from the last line of the screenshot above, for **materialization** of each window, I have used a combination of `ProcessWindowFunction` and `ReduceFunction` because it allowed me to process the *DataStream* via *Incremental Aggregation*. 
+    By default, `ProcessWindowFunction` *materializes* the window in a batch fashion, where it performs the desired operation on the window contents which is passed to it in an `Iterable`. The downside of this policy is that the window contents need to be buffered, which is memory intensive. 
+
+    So, by using a combination of `ReduceFunction` and `ProcessWindowFunction`, I am eliminating the overhead of buffering window contents in the following manner. 
+    
+    1. Whenever a new *TaxiRideEvent* arrives the it is reduced by calling the *reduce()* method of *ReduceBySummingTip* class. So, we now we only need to store a reduced single object in the memory instead of buffering them up.
+    ![reduce](images/Reduce.PNG)
+
+    2. So, now there will be only one object in the `Iterable` of the *TotalTipForThisWindow* (`ProcessWindowFunction`) class. So, while window *materialization*, we can get the first object in the iterable and publish the result for this window. 
+    The result here is a Tuple of 3 elements (key, Sum of Tips, ending timestamp of the window).
+    ![reduce](images/ProcessWindow.PNG) 
+
+6. Instead of providing the customers with a Tuple of 3 elements, I wanted to show them something more intuitive. So, I used `Redis` as my near-realtime sink, which can be queried by the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app to produce a near-realtime ranking of the **n** most rewarding pick-up locations in terms of earning tips. The resultant image is stored in [reports/near-realtime_results](near-realtime_results/) directory.
+![reduce](images/pl.PNG)
+
+As `Redis` is a key-value store, so I mapped the initial Tuple3 output to Tuple2<Sring,String> where *"L"+location_id* is the key and *total_tip* is the value to be stored in `Redis`. 
+
+![reduce](images/flinkRed.PNG)
+
+Finally we execute our *StreamExecutionEnvironment* env.
+![reduce](images/exec.PNG)
 
 
 
