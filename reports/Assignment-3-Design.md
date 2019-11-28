@@ -195,11 +195,12 @@ The class *MyExtractor* is called for generating these **Watermarks**, which is 
 6. Instead of providing the customers with a Tuple of 3 elements, I wanted to show them something more intuitive. So, I used `Redis` as my near-realtime sink, which can be queried by the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app to produce a near-realtime ranking of the **n** most rewarding pick-up locations in terms of earning tips. The resultant image is stored in [reports/near-realtime_results](near-realtime_results/) directory.
 ![reduce](images/pl.PNG)
 
-As `Redis` is a key-value store, so I mapped the initial Tuple3 output to Tuple2<Sring,String> where *"L"+location_id* is the key and *total_tip* is the value to be stored in `Redis`. 
+As `Redis` is a key-value store, so I mapped the initial Tuple3 output to Tuple2<Sring,String> where *"L"+location_id* is the **key** and a serialzed JSON object of *location_id* and *total_tip* attributes is the **value** to be stored in `Redis`. The redundancy of having *location_id* in the value will be discussed while describing the batch processing procedure in 3.2. 
 
 ![reduce](images/flinkRed.PNG)
 
 Finally we execute our *StreamExecutionEnvironment* env.
+
 ![reduce](images/exec.PNG)
 
 
