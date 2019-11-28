@@ -17,8 +17,8 @@ For viewing the design of the system click [here](reports/Assignment-3-Design.md
 * [Flink](https://flink.apache.org/) - As Streaming Framework
 * [Kafka](https://kafka.apache.org/) - As Message Broker
 * [Elasticsearch](https://www.elastic.co/products/elasticsearch) - As Final Sink
-* [Kibana](https://www.elastic.co/products/kibana) - As realtime Visualizer
-* [Redis](https://redis.io/)
+* [Kibana](https://www.elastic.co/products/kibana) - Visualizing outputs
+* [Redis](https://redis.io/) - As near-realtime Sink
 
 
 

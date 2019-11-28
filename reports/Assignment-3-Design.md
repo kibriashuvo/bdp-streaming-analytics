@@ -131,10 +131,14 @@ The input streaming data is the exact JSON representation of each taxi ride even
 ![producer](images/producer.PNG)
 The input streaming data is actually the entire row of in the dataset which represents a taxi ride event. So, here [customer_producer.py](../code/customer-code/customer_producer.py) is reading the CSV file into a Dataframe in *Pandas* and then converting each row to a JSON object. Finally it **serializes** the newly created JSON object and sends it to the **customerstreamapp-input** topic of **mysimbdp-databroker** (`Kafka`).
 
+My stream processing service is also capable of handling **event stream** directly from the taxi's IoT device if one is installed, as long as it streams the event data in the same format described above which is a serialized JSON object that is later converted into a **POJO** using a deserializer by **customerstreamapp**. 
+
 **Structure of output result:**
-The **customerstreamapp** has 2 sinks, one for near-realtime output (`Redis `) and the other for storing streaming output results (`elasticsearch`) for performing batch processing later on. 
+
+The **customerstreamapp** has 2 **Event sinks**, one for near-realtime output (`Redis `) and the other for storing streaming output results (`elasticsearch`) for performing batch processing later on. 
 
 1. The output for near-realtime results is a Tuple of 2 **(location_id,total_tip)**. This output is stored in `Redis` as key-value pairs. To provide my customers with a visual aid to understand the output, [customer_realtime-view.py](../code/customer-code/customer_realtime-view.py) polls the total tip for each of the locations continously to show the near-realtime output to the customer using *matplotlib*.  
+
 ![producer](images/outputRT.PNG)
 
 
@@ -151,14 +155,14 @@ The **customerstreamapp** has 2 sinks, one for near-realtime output (`Redis `) a
 
 <img src="images/TaxiRideEvent.PNG"  width="250" height="350">
 
-**Serialization/deserialization of customerstreamapp**
+**Serialization/deserialization of Customerstreamapp:**
 
 On the other end, **customerstreamapp** has a class called [TaxiRideEvent.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideEvent.java) which represents a taxi ride event inside the customerstreamapp. It has the exact same 18 attibutes as the JSON object sent by [customer_producer.py](../code/customer-code/customer_producer.py). 
 
 
 ![producer](images/POJO.PNG)
 
-**Customerstreamapp** has a **deserializer** class [TaxiRideSerializer.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideSerializer.java) which takes the JSON string read from `Kafka` topic and converts it to a POJO (TaxiRideEvent in this case).
+**Customerstreamapp** has a **deserializer** class [TaxiRideSerializer.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideSerializer.java) which takes the JSON string read from `Kafka` topic and converts it to a **POJO** (TaxiRideEvent in this case).
 
 
 
