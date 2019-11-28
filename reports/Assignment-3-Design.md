@@ -30,9 +30,9 @@ Previously, this dataset used to include the latitude and longitude of the picku
 
 **Streaming analytics:**
 
-The taxi drivers might be interested in finding the pickup areas of those rides, where the passagers usually gives more **tips**. So, here I am going to develop a streaming analytics for the **taxi drivers (my customers)**, where they will be able to see the status quo of total tip amount paid by the passengers for the rides which started in these pickup location. So that, if they want, they can go to such places in the hope of earning more. 
+The taxi drivers might be interested in finding the pickup areas of those rides, in which the passagers usually gives more **tips**. So, here I'm going to develop a streaming analytics for the **taxi drivers or a company devloping an app for the drivers (my customers)**, where they will be able to see the status quo of total tip amount paid by the passengers for the rides which started in these pickup location. So that, if a driver wishes, he can go to such vicinties in the hope of earning more based on the idea that these areas might have more corporate offices or the passagers living in these areas are relatively rich and generous. 
 
-To be more clear, the taxi drivers will be able see the top **n** (my customer defines the **n**) pickup locations which resulted into highest total tips, updating in near real-time.
+To be more clear, the taxi drivers will be able see the **top n** (my customer defines the **n**) pickup locations which resulted into highest total tips, updating in near real-time.
 
 **Batch analytics from the historical output of Streaming analytics:**
 
@@ -44,11 +44,12 @@ Moreover, I will plot the result of this batch analytics onto a **co-ordinate ma
 
 **Q2:** *Customers will send data through message brokers/messaging systems which become data stream sources. Discuss and explain the following aspects for the streaming analytics: (i) should the analytics handle keyed or non-keyed data streams for the customer data, and (ii) which types of delivery guarantees should be suitable.*
 
-**Answer** 
+**Answer:**
+
 **i.** The streaming analytics that I am implementing here should handle **keyed** data stream. Because, the analytics is going to calculate total amount tips of all the taxi rides starting from a particular pickup location. In order to calculate this, the data stream must be keyed by the pickup location id **(PULocationID)**, so that the incoming taxi ride events will be partioned by their **(PULocationID)** and the output of the streaming analytics for each of these locations will be calculated parallelly.
 
 ![Key](images/keyBy.png)
-For example, in the diagram above, I am receiving the taxi ride events from the Kafka source and then passing it through the **keyBy Operator** which eventually allocates them to the **Window Operators**. In the diagram the taxi ride events R<sub>1</sub> through R<sub>6</sub> are colored according to their location ID. After passing through the keyBy Operator they are **partitioned** according to their pickup location ID and then they are passed to appropiate window operator. Then each of these window operators **materializes** the result of streaming analysis parallelly **when** at proper time (The discussion about timing of window matrialization is discussed in answer of question no. 3).
+For example, in the diagram above, I am receiving the taxi ride events from the Kafka source and then passing it through the **KeyBy Operator** which eventually allocates them to the **Window Operators**. In the diagram the taxi ride events **R<sub>1</sub>** through **R<sub>6</sub>** are colored according to their location ID. After passing through the keyBy Operator they are **partitioned** according to their pickup location ID and then they are passed to appropiate window operator. Then each of these window operators **materializes** the result of streaming analysis parallelly **when** at proper time (The discussion about timing of window matrialization is discussed in answer of question no. 3).
 
 
 **ii.** **At-most-once** delivery guarantee should be suitable for my streaming analytics. Because, I don't really want to process a single taxi ride event multiple times and get a **false** high total_tip amount which might mislead the taxi drivers to choose wrong pick-up locations.
@@ -62,12 +63,21 @@ But definately, my ultimate target is to provide exactly-once delivery.
 **Q3:** *Given streaming data from the customer (selected before). Explain the following issues: (i) which types of time should be associated with stream sources for the analytics and be considered in stream processing (if the data sources have no timestamps associated with events, then what would be your solution), and (ii) which types of windows should be developed for the analytics (if no window, then why). Explain these aspects and give examples.* 
 
 
-**Answer** 
-i. The particular streaming analytics in my case doesn't require consideration of *event time*. Because, in my streaming analytics I am computing the total amount of tip per location. Here, my customer (taxi drivers) are mostly interested in knowing starting location of the taxi rides which ends up resulting into maximum tips. 
-Another notable issue in my analytics is that, the taxi ride event will not have  insteresting  But as I'm also storing the output of my streaming analysis output to a sink `mysimbdp-coredms` for future batch processing, so I am considering *event time* during my streaming analytics. Because, then the drivers will be able to find out the starting times of the 
+**Answer:**
 
+**i.** The particular streaming analytics that I'm implementing here requires consideration of **event time**. Because, here I'm computing the total amount of tips per pickup location and presenting the ouput to my customers (taxi drivers) in near-realtime, so that the drivers can go these vicinities to find such a trip in the hope of more earnings. 
 
-ii. **Sliding windows** should be develped as my analytics will present the drivers with a regulargly updated status of the most rewarding locations. For, example my analytics will be computing max tips per 15 mins computed in every 5 mins. A new window will be created in every 5 mins, and each of this windows will contain the taxi ride events recieved in last 15 mins.....
+The necessity of providing my customers with **accurate analysis** is the reason behind considering **event time** during processing. 
+
+Let's assume a scenario where my stream processing system receives a taxi ride event (in current time) with a very high amount of tip but actually the ride was taken on the day before (**a late and out-of-order data event by a huge margin**). If my system considers **ingestion time** for the data events, then this late and out-of-order event will be considered as a freshly ended taxi ride and the generous tip amount will be aggegated to the running sum of the window for this location. In worst case, this sum will be greater than the **n<sup>th</sup>** highest sum and this location would pop up as a highly rewarding pickup location in driver's near-realtime output window. So, naturally the driver would be tempted to pick up passengers from this location expecting to earn more, but in reality this location is not one of those desired pick-up locations. Subsequently, in this case the driver is losing the opportunity of earning more by coming to this location **false** rewarding location instead of going to a location which is actually rewarding (in terms of earning more tips).
+
+This dataset contains two timestamp fields: **tpep_pickup_datetime & tpep_dropoff_datetime**. As we all know, duration of each of the taxi rides vary, so for 2 rides starting one after another it is not guaranteed that the ride which started earlier would necessarily finish earlier than the other. So, we can't consider the *pickup time* as our event time. Instead, we are considering **tpep_dropoff_datetime** as our event time to provide streaming analytics on freshly ended taxi ride events. 
+
+........
+But as I'm also storing the output of my streaming analysis output to the sink `mysimbdp-coredms` for future batch processing,so I am considering *event time* during my streaming analytics. Because, then the drivers will be able to find out the starting times of the 
+.......
+
+**ii.** **Sliding windows** should be develped as my analytics will present the drivers with a regulargly updated status of the most rewarding locations. For, example my analytics will be computing max tips per 15 mins computed in every 5 mins. A new window will be created in every 5 mins, and each of this windows will contain the taxi ride events recieved in last 15 mins.....
 
 overlap
 Result materialization
@@ -84,7 +94,8 @@ Result materialization
 
 **Q5** *Provide a design of your architecture for the streaming analytics service in which you clarify: customer data sources, mysimbdp message brokers, mysimbdp streaming computing service, customer streaming analytics app, mysimbdp-coredms, and other components, if needed.*
 
-**Answer**
+**Answer:**
+
 ![Design](images/design.png)
 
 
