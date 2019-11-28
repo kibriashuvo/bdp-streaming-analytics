@@ -84,6 +84,8 @@ In the first case, we are considering *tumbling windows* of 4 seconds, where the
 
 Now, lets consider the same example with sliding window. Here, again we have window width of 4 seconds which slides by 1 seconds and a trigger which fires at a new element arrival. Now for at the end of the first window the sum will be same as the tumbling window which is **27**. But, this time when the next taxi ride with tip amount 5 arrives another overlapping sliding window (green in the figure) will be materialzed as the watermark will pass the end of this window by this time and the sum of the tips will be **25**, which is the exact output that we desire.
 
+Thus, I'm using sliding window for my streaming analytics. 
+
 For example my analytics will be computing total tips per 15 mins computed in every 5 mins. A new window will be created in every 5 mins, and each of this windows will contain the taxi ride events recieved in last 15 mins.....
 
 overlap
@@ -106,9 +108,19 @@ Result materialization
 ![Design](images/design.png)
 
 
+blah blah blah
+
+---
 
 
+## Part 2: Implementation of streaming analytics
 
+**Q1** *Explain the implemented structures of the input streaming data and the output result, and the data serialization/deserialization, for the  streaming analytics application (customerstreamapp) for customers.*
+
+
+**Answer**
+
+**mysimbdp-customerstreamapp** is located inside [code/customer-code/customerstreamapp](../code/customer-code/customerstreamapp)
 
     
 
