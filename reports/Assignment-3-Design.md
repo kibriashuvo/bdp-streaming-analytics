@@ -86,20 +86,23 @@ Now, lets consider the same example with sliding window. Here, again we have win
 
 Thus, I'm using sliding window for my streaming analytics. 
 
-For example my analytics will be computing total tips per 15 mins computed in every 5 mins. A new window will be created in every 5 mins, and each of this windows will contain the taxi ride events recieved in last 15 mins.....
+For example my analytics will be computing total tips for each location for the past 15 mins computed in every 5 mins. A new window will be created in every 5 mins, and each of this windows will contain the taxi ride events recieved in last 15 mins.....
 
 overlap
 Result materialization
 
 
-**Q4**
+**Q4** Explain which performance metrics would be important for the streaming analytics for your customer cases
 
-..
+**Answer:**
 
-...
+Among the two most important performance metrics (*latency* and *throughput*) of stream processing systems, **throughput** would be most relavant metric for my customers.
 
-..
+The reason behind this is that my customers want to see a list of the most rewarding pick-up locations in terms of tips earned by the end of these rides. In other words, they want the see the statistics of tip amount grouped by pick-up locations. As we know from the **Central Limit Theorem**, the confidence in the estimate is proportional to sample size. Namely, as the sample increases, so does the confidence in the estimate that we calculate, which in terms results into lower uncertainty and higher precision. 
 
+So, for this streaming analytics to be reliable for my customers, it has make sure that it processes event streams with high throughput. Because, high throughput will ensure **higher reliablity** of the result that we disseminate back to our customer. Because, then my customers would be assured that a pick-up location with high tip amount (result of the streaming analytics) is actually rewarding, as it was computed by processing a substantial number of taxi ride events. Otherwise stated, high throughput will ensure that the result is not skewed by any outlier (i.e. a single taxi ride with a remarkably high amount of tip).
+
+Although, by no means, the analysis above implies that *latency* is not an important metric for my customers. As for any streaming analytics application the goal is to achieve lower latency and higher throughput. But in case of my streaming analytics the importance of **throughput** outweighs *latency*. 
 
 **Q5** *Provide a design of your architecture for the streaming analytics service in which you clarify: customer data sources, mysimbdp message brokers, mysimbdp streaming computing service, customer streaming analytics app, mysimbdp-coredms, and other components, if needed.*
 
