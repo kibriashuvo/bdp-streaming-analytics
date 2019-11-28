@@ -129,18 +129,36 @@ The input streaming data is the exact JSON representation of each taxi ride even
 **Structure of input streaming data:**
 
 ![producer](images/producer.PNG)
-The input streaming data is actually the entire row of in the dataset which represents a taxi ride event. So, here [customer_producer.py](../code/customer-code/customer_producer.py) is reading the CSV file into a Dataframe in Pandas and then converting each row to a JSON object. Finally it serializes the newly created JSON object and sends it to the **customerstreamapp-input** topic of **mysimbdp-databroker** (Kafka).
+The input streaming data is actually the entire row of in the dataset which represents a taxi ride event. So, here [customer_producer.py](../code/customer-code/customer_producer.py) is reading the CSV file into a Dataframe in *Pandas* and then converting each row to a JSON object. Finally it **serializes** the newly created JSON object and sends it to the **customerstreamapp-input** topic of **mysimbdp-databroker** (`Kafka`).
 
 **Structure of output result:**
 The **customerstreamapp** has 2 sinks, one for near-realtime output (`Redis `) and the other for storing streaming output results (`elasticsearch`) for performing batch processing later on. 
 
-1. The output for near-realtime results is a Tuple of 2 **(location_id,total_tip)**. This output is stored in `Redis`. To provide my customers with a visual aid to understand the output, [customer_realtime-view.py](../code/customer-code/customer_realtime-view.py) polls the total tip for each of the locations continously to show the near-realtime output to the customer.  
+1. The output for near-realtime results is a Tuple of 2 **(location_id,total_tip)**. This output is stored in `Redis` as key-value pairs. To provide my customers with a visual aid to understand the output, [customer_realtime-view.py](../code/customer-code/customer_realtime-view.py) polls the total tip for each of the locations continously to show the near-realtime output to the customer using *matplotlib*.  
 ![producer](images/outputRT.PNG)
 
-The output 
-   
-![producer](images/TaxiRideEvent.PNG)
+
+2. The output for storing batch result is a JSON string consisting of 4 fields (time,location_id,location,total_tip) where *time* is ending timestamp of the window, *location_id* is the pick-up location of the rides in this current window, *location* is the geo_point (longitude,latitude) of the corresponding location_id and *total_tip* is the result of the window. Below is an example:
+```
+{
+    "time": "153130931300",
+    "location_id": "176",
+    "location": "40.689483,-74.171533",
+    "total_tip": "12.78"
+}
+```
+
+
+<img src="images/TaxiRideEvent.PNG"  width="250" height="350">
+
+**Serialization/deserialization of customerstreamapp**
+
 On the other end, **customerstreamapp** has a class called [TaxiRideEvent.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideEvent.java) which represents a taxi ride event inside the customerstreamapp. It has the exact same 18 attibutes as the JSON object sent by [customer_producer.py](../code/customer-code/customer_producer.py). 
+
+
+![producer](images/POJO.PNG)
+
+**Customerstreamapp** has a **deserializer** class [TaxiRideSerializer.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideSerializer.java) which takes the JSON string read from `Kafka` topic and converts it to a POJO (TaxiRideEvent in this case).
 
 
 
