@@ -30,5 +30,5 @@ For viewing the design of the system click [here](reports/Assignment-3-Design.md
 
 ## Acknowledgments
 
-* **Hong-Linh Truong** [Website](https://users.aalto.fi/~truongh4/) 
+* Lecture materials of **Hong-Linh Truong** [Website](https://users.aalto.fi/~truongh4/) 
 * **Tyler Akidau** [Streaming 101](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-101)

@@ -23,7 +23,7 @@ csv.field_size_limit(sys.maxsize)
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
 
-data = pd.read_csv(curr_path+"/../../data/yellow_tripdata_2019-01.csv",nrows=10000) 
+data = pd.read_csv(curr_path+"/../../data/yellow_tripdata_2019-01.csv",nrows=int(args.rows)) 
 
 def f(x):
     a = x.to_json()

@@ -290,9 +290,13 @@ Let's consider a suitable critical condition for my streaming analytics applicat
 Now that the customer has been presented with, the historical tipping pattern along with the exceedingly high current tip amount for the location, it is *up to the customer* (taxi driver) whether he wants to go to that location to increase his chance of getting such a highly rewarding ride or ignore the location.
 
 For supporting this trigerring of batch analytics, I will implement the following design. 
+![lat](images/3.3.png)
 
+Here, I would implement a new **customerbatchapp** which will also run on top of `Flink`. It would process the historical results using Flinks `DataSet` API. Upon deteting a critical condition my **customerstreamapp** will start **customerbatchapp** by executing a bash command. 
 
-Here, I would add a new component **triggered-batch-analyticsto my streaming analytics service
+The **customerbatchapp** will first query the historical results of streaming analytics from **mysimbdp-coredms** via **mysimbdp-daas**. As Flinks `DataSet` API doesn't provide any mechanism to read from persistent storage, in this case **mysimbdp-daas** will generate a CSV file by querying the **mysimbdp-coredms** and pass it to **customerbatchapp**. Then, after performing batch analytics on the CSV file **customerbatchapp** will send the output result to my `Redis` data store. 
+
+So, now along with polling the near-realtime data, [customer_realtime-view](../code/customer-code/customer_realtime-view.py) will now be able to poll the batch streaming result and show it to the customer.
 
 
 **Q4:** If you want to scale your streaming analytics service for many customers and data, which components would you focus and which techniques you want to use? 
@@ -304,14 +308,13 @@ Here, I would add a new component **triggered-batch-analyticsto my streaming ana
 In order to scale up my streaming analytics service for many customers and data, I would have to first focus on **mysimbdp-databroker** as it the main source of event stream for my streaming analytics service. Without proper scaling of this component, my service will not be able to produce statisfactory performance under high data load from many customers. To do so, 
 1. Firstly I would have to upgrade my **mysimbdp-databroker** from a single broker implementation to a multi-broker cluster so that I can distribute the load between the brokers to increase performance. Though, I have keep an eye on the load distribution between the different brokers in this case so that loads remain almost equal to all the nodes, which will improve performance. 
 
-2. Secondly, to increase throughput, I need to increase the number of partitions for each topic and at the same time I should ensure that each customer's **customerstreamapp** has equal number of consumers consuming data from the specified topic, so that maximum throughput can be achieved.  
+2. Secondly, to increase throughput, I need to increase the number of partitions for each topic and at the same time I should ensure that each customer's **customerstreamapp** has equal number of consumers (equal parallelism vaalue) consuming data from the specified topic, so that maximum throughput can be achieved.  
 
 **Scaling of customerstreamapp:**
 
-To scale up my streaming analytics process for multiple customers I should have separate **customerstreamapp** for each of my customers. And in each of these customerstreamapps should be run with a high parallelism value as it will split the tasks into several parallel instances according to the parallelism value, which will in terms improve performance. However, as I am serving multiple customers now, it would be better not to hardcode parallelism value on *operator* or *execution environment* level, rather it would be better to set paralleism at client level while running submitting jobs to `Flink` so that we can assign slots according to the need of each customer. Alternatively, I can define max paralellism to each of my customerstreamapp, so that they can scale up to a maximum point and use free taskslots if available.
+To scale up my streaming analytics process for multiple customers I should have separate **customerstreamapp** for each of my customers. And in each of these customerstreamapps should be run with a high parallelism value as it will split the tasks into several parallel instances according to the parallelism value, which will in terms improve performance. However, as I am serving multiple customers now, it would be better to define max paralellism for each of my customerstreamapp, so that they can scale up to a maximum point and use free taskslots if available.
 
 Finally, as I am disseminating the results of my streaming analysis by storing the result into `Redis`, from where the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) polls the result, so my `Redis` sink also needs to be scaled to accomodate many customers and data.
-
 
 
 
