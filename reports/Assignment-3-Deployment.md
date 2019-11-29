@@ -78,13 +78,13 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
 **Starting streaming customer data to `kafka`**
 
 ```bash
- python3 code/customer-code/customer_producer.py
+ python3 code/customer-code/customer_producer.py --row <number of rows>
 ```
 
 **Running Customer Real Timeview**
 
 ```bash
- python3 code/customer-code/customer_realtime-view.py
+ python3 code/customer-code/customer_realtime-view.py -n <number of locations>
 ```
 
 
