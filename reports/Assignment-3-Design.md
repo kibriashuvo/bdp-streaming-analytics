@@ -102,7 +102,12 @@ Although, by no means, the analysis above implies that *latency* is not an impor
 ![Design](images/design.png)
 
 
-blah blah blah
+Here, in my design the data sources can be either the IoT devices installed in taxis or the ride data stored in some file format (eg. csv). To produce event stream for the ride data stored in CSV format, I have a [customer_producer](../code/customer-code/customer_producer.py) which serializes every taxi ride event from the CSV file and sends it to **mysimbdp-databroker** (`Kafka`). 
+
+My **mysimbdp-streaming-computing-service** is based on `Flink`. The **customerstreamapp** contains a `FlinkKafkaConsumer` which reads the messages from **mysimbdp-databroker** and starts the streaming analytics using this event stream. 
+
+The results of the streaming analytics goes to 2 different sinks. One sink is for disseminating near-realtime output to the customer which is a `Redis` cluster. [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app polls this sink to produce near-realtime output to the customers. The other sink is **mysimbdp-coredms** (`elasticsearch`). The **customerstreamapp** persists the output of the streaming analytics via **mysimbdp-daas**. Then, `kibana` is used to produce batch analytics on the **bounded** data stored in **mysimbdp-coredms**.
+
 
 ---
 

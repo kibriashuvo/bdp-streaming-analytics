@@ -9,7 +9,7 @@ import json
 curr_path = os.path.dirname(os.path.abspath(__file__))
 
 
-logging.basicConfig(filename=curr_path+'/../../logs/customer_producer.log', filemode='w', format='%(asctime)s - %(message)s', level=logging.INFO)
+logging.basicConfig(filename=curr_path+'/../../logs/customer_producer.log', filemode='a', format='%(asctime)s - %(message)s', level=logging.INFO)
 
 parser = argparse.ArgumentParser()
 #parser.add_argument('--data',help='Data in CSV format')
@@ -28,9 +28,26 @@ data = pd.read_csv(curr_path+"/../../data/yellow_tripdata_2019-01.csv",nrows=int
 def f(x):
     a = x.to_json()
     producer.send('customerstreamapp-input',a.encode('utf-8'))
-    logging.info("Sent data packet")
+
+logging.info("----------------------------------------------------")
+logging.info("----------------------------------------------------")
+logging.info("----------------------------------------------------")
+logging.info("--------------------Fresh Run-----------------------")
+logging.info("----------------------------------------------------")
+logging.info("----------------------------------------------------")
+logging.info("----------------------------------------------------")
+logging.info("Kafka Producer started sending data")
 
 data.apply(f, axis=1)
+producer.close()
+
+
+logging.info("Kafka Producer finished sending data")
+logging.info("Total # of rows sent = "+args.rows)
+logging.shutdown()
+
+
+
 
 '''
 with open("../../data/yellow_tripdata_2019-01.csv", 'rt') as csvfile:
