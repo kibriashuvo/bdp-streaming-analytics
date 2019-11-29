@@ -74,12 +74,6 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
  code/customer-code/run-customerstreamapp
 ```
 
-**Running Customer Real Timeview**
-
-```bash
- python3 code/customer-code/customer_realtime-view.py
-```
-
 
 **Starting streaming customer data to `kafka`**
 
@@ -87,7 +81,11 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
  python3 code/customer-code/customer_producer.py
 ```
 
+**Running Customer Real Timeview**
 
+```bash
+ python3 code/customer-code/customer_realtime-view.py
+```
 
 
 ## For cleanup (Removing all)
