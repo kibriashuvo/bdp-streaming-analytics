@@ -84,7 +84,7 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
 **Running Customer Real Timeview**
 
 ```bash
- python3 code/customer-code/customer_realtime-view.py -n <number of locations>
+ python3 code/customer-code/customer_realtime-view.py --n <number of locations>
 ```
 
 
