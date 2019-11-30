@@ -138,7 +138,7 @@ The **customerstreamapp** has 2 **Event sinks**, one for near-realtime output (`
 
 1. The output for near-realtime results is a Tuple of 2 **(location_id,total_tip)**. This output is stored in `Redis` as key-value pairs. To provide my customers with a visual aid to understand the output, [customer_realtime-view.py](../code/customer-code/customer_realtime-view.py) polls the total tip for each of the locations continously to show the near-realtime output to the customer using *matplotlib*.  
 
-![producer](images/outputRT.PNG)
+![producer](images/outputRT.png)
 
 
 
