@@ -292,7 +292,7 @@ public class Customerstreamapp {
 		
 
 		//maxTipDest.print();
-		env.execute("Tips per location");
+		env.execute("Total Tip per location");
 
 
 

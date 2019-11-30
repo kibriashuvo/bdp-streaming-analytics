@@ -13,7 +13,7 @@
 * Redis (Latest Docker image)
 * Python (v3.*)
 
-**Note:** All the commands below should be run from the **root directory of the repository**. Some of the bash scipts require root access. So, if asked, please provide the root credentials.
+**Note:** All the commands below should be run from the **root directory of the repository**. Some of the bash scipts require root access. So, if asked, please provide the root credentials. Also, note that starting `Flink` slave nodes require adding them to `~/.ssh/known_hosts`. So, you have to explicitly type **yes** when prmopted.
 
 **Install `Maven`**
 ```bash
@@ -71,7 +71,13 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
 **Running Customerstreamapp**
 
 ```bash
- code/customer-code/run-customerstreamapp
+ code/customer-code/run-customerstreamapp <parallelism degree>
+```
+
+**Running Customer Real Timeview**
+
+```bash
+ python3 code/customer-code/customer_realtime-view.py --n <number of locations>
 ```
 
 
@@ -81,11 +87,6 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
  python3 code/customer-code/customer_producer.py --row <number of rows>
 ```
 
-**Running Customer Real Timeview**
-
-```bash
- python3 code/customer-code/customer_realtime-view.py --n <number of locations>
-```
 
 
 ## For cleanup (Removing all)
