@@ -4,5 +4,5 @@ mvn clean package
 
 cd .. && cd .. && cd ..
 
-/usr/local/flink/bin/flink run -p 4 -c com.kibria.Customerstreamapp code/customer-code/customerstreamapp/target/customerstreamapp-1.0.jar
+/usr/local/flink/bin/flink run -p $1 -c com.kibria.Customerstreamapp code/customer-code/customerstreamapp/target/customerstreamapp-1.0.jar
 

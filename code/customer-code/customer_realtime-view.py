@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import redis,os
 import argparse
+import matplotlib.colors as mcolors
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -36,7 +37,7 @@ def updateDataframe(location_id,total_tip,n):
     #Getting the top n tip earning areas 
     df_plot = df.nlargest(n, 'total_tip')
     
-    df_plot.plot(kind='bar',x='location_id',y='total_tip',color=['black', 'red', 'green', 'blue', 'cyan'])
+    df_plot.plot(kind='bar',x='location_id',y='total_tip',color=mcolors.TABLEAU_COLORS)
     plt.savefig(curr_path+"/../../reports/near-realtime_results/near-realtime-bar-chart.png")
     plt.clf()
 
