@@ -43,15 +43,15 @@ def updateDataframe(location_id,total_tip,n):
     print(df_plot)
 
 
+while True:
+    for i in range(1,264):
+        key = "L"+str(i)
+        value = r.get(key)
+        n = args.n
+        if value is not None:
+            #obj = value.decode('utf-8')
+            obj = json.loads(value.decode('utf-8'))
+            updateDataframe(int(obj['location_id']),float(obj['total_tip']),int(n))
 
-for i in range(1,264):
-    key = "L"+str(i)
-    value = r.get(key)
-    n = args.n
-    if value is not None:
-        #obj = value.decode('utf-8')
-        obj = json.loads(value.decode('utf-8'))
-        updateDataframe(int(obj['location_id']),float(obj['total_tip']),int(n))
-
-    
-    
+        
+        
