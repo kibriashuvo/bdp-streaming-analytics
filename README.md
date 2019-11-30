@@ -1,4 +1,4 @@
-# Assignment 3 801649
+# Stream processing using Flink
 
 This is a implementation of a Streaming Analytics System using `Apache Flink`. 
 
@@ -15,9 +15,9 @@ Near-Realtime Output            |  Batch analytics on RT output
 
 For Deployment guidelines click [here](reports/Assignment-3-Deployment.md)
 
-## Design
+## Design Details
 
-For viewing the design of the system click [here](reports/Assignment-3-Design.md)
+For viewing the design details of the system click [here](reports/Assignment-3-Design.md)
 
 ## Built With
 
