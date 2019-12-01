@@ -27,20 +27,12 @@ print("This will start updating as soon as streaming results are out")
 
 
 
-def updateOutputPlot(location_id,total_tip):
-    df.iat[location_id-1,1] = total_tip
 
-    #Getting the top 5 tip earning areas    
-    df_plot = df.nlargest(5, 'total_tip')
-    print(df_plot)
-    #df_plot.plot(kind='bar',x='location_id',y='total_tip')
-    #plt.savefig("test.png")
 
 def updateDataframe(location_id,total_tip,n):
     df.iat[location_id-1,1] = total_tip
     #Getting the top n tip earning areas 
     df_plot = df.nlargest(n, 'total_tip')
-
    
     
     df_plot.plot(kind='bar',x='location_id',y='total_tip',color=mcolors.TABLEAU_COLORS)
