@@ -214,7 +214,59 @@ Finally we execute our *StreamExecutionEnvironment* env.
 
 **Answer:**
 
-A demo of the streaming analytics running in the test environment can be seen [here](http://www.youtube.com).
+A video demo of the streaming analytics running in the test environment can be seen [here](https://www.youtube.com/watch?v=JxF2Ke78yX0). 
+
+**Test environment description:** 
+
+| ENV Type  | Value |
+| ------------- | ------------- |
+| Parallelism  | 2 |
+| No. of events  | 200000 |
+| Window Type  | Sliding |
+| Window Width  | 1 Hour|
+| Window Period  | 30 mins|
+|Machine Specs  | Core-i7 1065g7, 16 GB RAM  |
+
+My `Flink` cluster had 4 `Task slots` and the testing parallelism value was 2. So, the rest 2 slots were idle during this run. (Note: In later part we will discuss about different parallelism settings).
+
+**Result of the analytics:**
+
+This analytics computed the most rewarding pick-up location in terms of tip given by the passengers at the end of the rides. My streaming analytics was outputting the results considering the rides which took place last 1 hour and the window was sliding every 30 mins. This output was being stored in the `Redis` store and from there [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app was continously polling the output and sorting the locations according to the defined criterion and then finally producing the output graph. The output was continouslyy changing as new results were being published from my steaming analytics. Below, I have attached 2 screenshots from the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, lef of which shows the output at the beggining and the right one shows the output at end of the 200000<sup>th</sup> event was processed by my streaming analytics service.
+
+Beginning of the run           |  End of the run
+:-------------------------:|:-------------------------:
+![Test](images/testRunRes1.PNG) |  ![Test](images/testRunRes.PNG)
+
+From, the figure  we can see that, out of all 7 most rewarding locations that was present in initially in the output of the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, only location_id **50** remained rewarding till the end of the run. It is because, the other locations were not generating that amount of tip at the beginning to make their place in this list. But, as time passed and the streaming analytics recieved more and more events the eventually made their way up to the top 7 most popular locations that my customer wanted to see. 
+
+
+
+Here, 
+
+Performance analysis of the test run:
+
+![Test](images/testRun.PNG)
+
+**TaskManager0**:
+
+| Metric | Value |
+| ------------- | ------------- |
+| No. of events  | 85417 |
+|Sustained Latency | 121ms  |
+|Sustained Throughput | 1271/s  |
+
+**TaskManager1**:
+
+| Metric | Value |
+| ------------- | ------------- |
+| No. of events  | 114583 |
+|Sustained Latency | 212ms  |
+|Sustained Throughput | 1713/s  |
+
+
+ From the tables, above 
+
+
 
 
 ---
