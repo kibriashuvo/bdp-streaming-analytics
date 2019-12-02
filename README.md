@@ -1,4 +1,4 @@
-# Assignment 3 801649
+# Streaming Analytics Platform
 
 This is a implementation of a Streaming Analytics System using `Apache Flink`. 
 
