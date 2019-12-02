@@ -310,7 +310,7 @@ A video demo of the test with the aforementioned settings can be seen [here](htt
 |Sustained Latency | 354ms  | 304ms | 326ms |
 |Maximum Throughput | 4955/s  | 4859/s | 4533/s |
 
-Here, we can see that, as with the increasing rate of error, the maximum throughput being reduced, although the latency is not being affected by the increasing percentage of error.
+Here, we can see that, as with the increasing rate of error, the maximum throughput being reduced, although the latency is not being affected by the increasing percentage of error. It is also notable that, none of these test cases experienced any **backpressure**.
 
 
 **Q5:** *Explain parallelism settings in your implementation and test with different (higher) degrees of parallelism. Report the performance and issues you have observed in your testing environments.*
@@ -386,7 +386,7 @@ A video demo of the test with the aforementioned settings can be seen [here](htt
     |Sustained Latency | 134ms  | 45ms | 105ms | 161ms|
     |Maximum Throughput | 1676/s  | 670/s | 1108/s | 1757/s |
 
-From the tests above, it is clear that while for all of these test cases the combined throughput of all the taskmanagers almost remained same, the sustained latency kept improving as the degree of parallelism was increased. In case of 1,000,000 events it decreased from 409ms (for parallelism 1) to 142ms (minimum for parallelism 2) to 36ms (minimum for parallelism 4). Then, I ran the same test for 2,000,000 events to verify this trend, and these tests demonstrated the same behavior as well, where the latency went down from 469ms (for parallelism 1) to 137ms (minimum for parallelism 2) to 45ms (minimum for parallelism 4). It is also notable that, none of these test cases experienced any backpressure.
+From the tests above, it is clear that while for all of these test cases the combined throughput of all the taskmanagers almost remained same, the sustained latency kept improving as the degree of parallelism was increased. In case of 1,000,000 events it decreased from 409ms (for parallelism 1) to 142ms (minimum for parallelism 2) to 36ms (minimum for parallelism 4). Then, I ran the same test for 2,000,000 events to verify this trend, and these tests demonstrated the same behavior as well, where the latency went down from 469ms (for parallelism 1) to 137ms (minimum for parallelism 2) to 45ms (minimum for parallelism 4). It is also notable that, none of these test cases experienced any **backpressure**.
 
 ---
 

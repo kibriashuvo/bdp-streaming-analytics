@@ -24,7 +24,7 @@ For viewing the design details of the system click [here](reports/Assignment-3-D
 * [Flink](https://flink.apache.org/) - As Streaming Framework
 * [Kafka](https://kafka.apache.org/) - As Message Broker
 * [Elasticsearch](https://www.elastic.co/products/elasticsearch) - As Final Sink
-* [Kibana](https://www.elastic.co/products/kibana) - Visualizing outputs
+* [Kibana](https://www.elastic.co/products/kibana) - Visualizing Batch outputs
 * [Redis](https://redis.io/) - As near-realtime Sink
 
 
@@ -38,4 +38,4 @@ For viewing the design details of the system click [here](reports/Assignment-3-D
 ## Acknowledgments
 
 * Lecture materials of **Hong-Linh Truong** [Website](https://users.aalto.fi/~truongh4/) 
-* **Tyler Akidau** [Streaming 101](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-101)
+* A very nice article by **Tyler Akidau** [Streaming 101](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-101)
