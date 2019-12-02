@@ -44,7 +44,7 @@ def f(x):
             ('SomeRandom', 'Data')        
         })
         #print(json.dumps(wrong_data).encode('utf-8'))
-        logging.info("Sent a wrong data")
+        #logging.info("Sent a wrong data")
         producer.send('customerstreamapp-input',json.dumps(wrong_data).encode('utf-8'))
     else:
         producer.send('customerstreamapp-input',a.encode('utf-8'))
@@ -67,7 +67,7 @@ producer.close()
 
 logging.info("Kafka Producer finished sending data")
 logging.info("Total # of rows sent = "+args.rows)
-logging.info("Total # Wrong data sent = "+wmc)
+logging.info("Total # Wrong data sent = "+error_rate)
 logging.shutdown()
 
 
