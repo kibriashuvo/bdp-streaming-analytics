@@ -8,7 +8,7 @@
 I used the New York City (NYC) Taxi [dataset](https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page) published by NYC Taxi and Limousine Corporation (TLC). 
 
 Particularly, I have used the dataset for yellow taxi cabs for the month *January, 2019*. The data is available in CSV format, where **each row of the CSV file represents a taxi ride event** in NYC. 
-The dataset that I have used here contains in total 18 fields of which we are mostly interested in the following fields - 
+The dataset that I have used here contains in total 18 fields of which I am mostly interested in the following fields - 
 
 * **tpep_dropoff_datetime** - When the meter was disengaged
 * **PULocationID** - Pickup location ID
@@ -39,14 +39,14 @@ Moreover, I will plot the result of this batch analytics onto a **co-ordinate ma
 **i.** The streaming analytics that I am implementing here should handle **keyed** data stream. Because, the analytics is going to calculate total amount tip of all the taxi rides starting from a particular pickup location. In order to calculate this, the data stream must be keyed by the pickup location id **(PULocationID)**, so that the incoming taxi ride events will be partioned by their **(PULocationID)** and the output of the streaming analytics for each of these locations will be calculated parallelly.
 
 ![Key](images/keyBy.png)
-For example, in the diagram above, I am receiving the taxi ride events from the Kafka source and then passing it through the **KeyBy Operator** which eventually allocates them to the **Window Operators**. In the diagram the taxi ride events **R<sub>1</sub>** through **R<sub>6</sub>** are colored according to their location ID. After passing through the keyBy Operator they are **partitioned** according to their pickup location ID and then they are passed to appropiate window operator. Then each of these window operators **materializes** the result of streaming analysis parallelly **when** at proper time (The discussion about timing of window matrialization is discussed in answer of question no. 3).
+For example, in the diagram above, I am receiving the taxi ride events from the Kafka source and then passing it through the **KeyBy Operator** which eventually allocates them to the **Window Operators**. In the diagram the taxi ride events **R<sub>1</sub>** through **R<sub>6</sub>** are colored according to their location ID. After passing through the keyBy Operator they are **partitioned** according to their pickup location ID and then they are passed to appropiate window operator. Then each of these window operators **materializes** the result of streaming analysis parallelly at proper time (The discussion about timing of window matrialization is discussed in answer of question no. 3).
 
 
 **ii.** **At-most-once** delivery guarantee should be suitable for my streaming analytics. Because, I don't really want to process a single taxi ride event multiple times and get a **false** high total_tip amount which might mislead the taxi drivers to choose wrong pick-up locations.
 
 On the other hand, the events that I am handling in this analytics *is **not** something that actually requires At-least-once delivery guarantee*, because I want to provide the drivers an opportunity to earn more, but it is not something that will affect their normal earnings. Yes, they might earn more if I can provide the exact updated realtime analytics, but missing couple of taxi ride events won't hurt them as much as would if I process a single taxi ride event multiple times and produce a wrong (misleading) output.
 
-But definately, my ultimate target is to provide exactly-once delivery. 
+But, in my implementation, I'm providing exactly-once delivery. 
 
 
 
@@ -103,7 +103,7 @@ Here, in my design the data sources can be either the IoT devices installed in t
 
 My **mysimbdp-streaming-computing-service** is based on `Flink`. The **customerstreamapp** contains a `FlinkKafkaConsumer` which reads the messages from **mysimbdp-databroker** and starts the streaming analytics using this event stream. 
 
-The results of the streaming analytics goes to 2 different sinks. One sink is for disseminating near-realtime output to the customer which is a `Redis` cluster. [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app polls this sink to produce near-realtime output to the customers. The other sink is **mysimbdp-coredms** (`elasticsearch`). The **customerstreamapp** persists the output of the streaming analytics via **mysimbdp-daas**. Then, `kibana` is used to produce batch analytics on the **bounded** data stored in **mysimbdp-coredms**.
+The results of the streaming analytics goes to 2 different sinks. One sink is for disseminating near-realtime output to the customer which is a `Redis` cluster. [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app polls this sink to produce near-realtime output for the customers. The other sink is **mysimbdp-coredms** (`elasticsearch`). The **customerstreamapp** persists the output of the streaming analytics to **mysimbdp-coredms** via **mysimbdp-daas**. Then, `kibana` is used to produce batch analytics on the **bounded** data stored in **mysimbdp-coredms**.
 
 
 ---
@@ -114,7 +114,7 @@ The results of the streaming analytics goes to 2 different sinks. One sink is fo
 **Q1:** *Explain the implemented structures of the input streaming data and the output result, and the data serialization/deserialization, for the  streaming analytics application (customerstreamapp) for customers.*
 
 
-**Answer**
+**Answer:**
 
 All codes related to the streaming analytics are located inside [code/customer-code](../code/customer-code) directory.
 * The **customerstreamapp** is located inside [code/customer-code/customerstreamapp](../code/customer-code/customerstreamapp) directory.
@@ -125,15 +125,15 @@ The input streaming data is the exact JSON representation of each taxi ride even
 **Structure of input streaming data:**
 
 ![producer](images/producer.PNG)
-The input streaming data is actually the entire row of in the dataset which represents a taxi ride event. So, here [customer_producer.py](../code/customer-code/customer_producer.py) is reading the CSV file into a Dataframe in *Pandas* and then converting each row to a JSON object. Finally it **serializes** the newly created JSON object and sends it to the **customerstreamapp-input** topic of **mysimbdp-databroker** (`Kafka`).
+The input streaming data is actually the entire row of in the dataset which represents a taxi ride event. So, here [customer_producer](../code/customer-code/customer_producer.py) is reading the CSV file into a Dataframe in *Pandas* and then converting each row to a JSON object. Finally it **serializes** the newly created JSON object and sends it to the **customerstreamapp-input** topic of **mysimbdp-databroker** (`Kafka`).
 
 My stream processing service is also capable of handling **event stream** directly from the taxi's IoT device if one is installed, as long as it streams the event data in the same format described above which is a serialized JSON object that is later converted into a **POJO** using a deserializer by **customerstreamapp**. 
 
 **Structure of output result:**
 
-The **customerstreamapp** has 2 **Event sinks**, one for near-realtime output (`Redis `) and the other for storing streaming output results (`elasticsearch`) for performing batch processing later on. 
+The **customerstreamapp** has 2 **Event sinks**, one for near-realtime output (`Redis`) and the other for storing streaming output results (`elasticsearch`) for performing batch processing later on. 
 
-1. The output for near-realtime results is a Tuple of 2 **(location_id,total_tip)**. This output is stored in `Redis` as key-value pairs. To provide my customers with a visual aid to understand the output, [customer_realtime-view.py](../code/customer-code/customer_realtime-view.py) polls the total tip for each of the locations continously to show the near-realtime output to the customer using *matplotlib*.  
+1. The output for near-realtime results is a Tuple of 2 **(location_id,total_tip)**. This output is stored in `Redis` as key-value pairs. To provide my customers with a visual aid to understand the output, [customer_realtime-view](../code/customer-code/customer_realtime-view.py) polls the total tip for each of the locations continously to show the near-realtime output to the customer using *matplotlib*.  
 
 ![producer](images/outputRT.png)
 
@@ -154,7 +154,7 @@ The **customerstreamapp** has 2 **Event sinks**, one for near-realtime output (`
 
 **Serialization/deserialization of Customerstreamapp:**
 
-On the other end, **customerstreamapp** has a class called [TaxiRideEvent.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideEvent.java) which represents a taxi ride event inside the customerstreamapp. It has the exact same 18 attibutes as the JSON object sent by [customer_producer.py](../code/customer-code/customer_producer.py). 
+On the other end, **customerstreamapp** has a class called [TaxiRideEvent.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideEvent.java) which represents a taxi ride event inside the customerstreamapp. It has the exact same 18 attibutes as the JSON object sent by [customer_producer](../code/customer-code/customer_producer.py). 
 
 
 ![producer](images/POJO.PNG)
@@ -162,7 +162,7 @@ On the other end, **customerstreamapp** has a class called [TaxiRideEvent.java](
 **Customerstreamapp** has a **deserializer** class [TaxiRideSerializer.java](../code/customer-code/customerstreamapp/src/main/java/com/kibria/TaxiRideSerializer.java) which takes the JSON string read from `Kafka` topic and converts it to a **POJO** (TaxiRideEvent in this case).
 
 
-**Q2:** Explain the key logic of functions for processing events/records in customerstreamapp in your implementation
+**Q2:** *Explain the key logic of functions for processing events/records in customerstreamapp in your implementation*
 
 **Answer:**
 
@@ -177,14 +177,14 @@ My streaming analytics application uses `Apache Flink` as its stream processing 
 
 3. Next we define the process of generating **Watermarks** for the *DataStream* that we had just created.
 ![eventTime](images/callingMyExtractor.PNG)
-The class *MyExtractor* is called for generating these **Watermarks**, which is extracted from the *Dropoff time** of the taxi events. Here I can also specify (in the constructor) the amount of lateness allowed before the window is materialized.
+The class *MyExtractor* is called for generating these **Watermarks**, which is extracted from the **Dropoff time** of the taxi events. Here I can also specify (in the constructor) the amount of lateness allowed before the window is materialized.
 ![eventTime](images/MyExtractor.PNG)
 
-4. After that, I key the *DataStream* using location_id of the events and then assign them to a **sliding window** of 1 hour which slides by 30 minutes (Tests will include results of varting window size for example a 15 mins window which slides by 5 mins). I include a **trigger** which fires whenever a new event arrives in the window. Finally I pass the *DataStream* through a reduce function which processes the event stream. 
+4. After that, I key the *DataStream* using location_id of the events and then assign them to a **sliding window** of 1 hour which slides by 30 minutes. I also include a **trigger** which fires whenever a new event arrives in the window. Finally I pass the *DataStream* through a reduce function which processes the event stream. 
 ![eventTime](images/keying.PNG)
 
 5. As it can be seen from the last line of the screenshot above, for **materialization** of each window, I have used a combination of `ProcessWindowFunction` and `ReduceFunction` because it allowed me to process the *DataStream* via *Incremental Aggregation*. 
-    By default, `ProcessWindowFunction` *materializes* the window in a batch fashion, where it performs the desired operation on the window contents which is passed to it in an `Iterable`. The downside of this policy is that the window contents need to be buffered, which is memory intensive. 
+    By default, `ProcessWindowFunction` *materializes* the window in a batch fashion, where it performs the desired operation on the window contents which is passed to it as an `Iterable`. The downside of this policy is that the window contents need to be buffered, which is memory intensive. 
 
     So, by using a combination of `ReduceFunction` and `ProcessWindowFunction`, I am eliminating the overhead of buffering window contents in the following manner. 
     
@@ -192,7 +192,7 @@ The class *MyExtractor* is called for generating these **Watermarks**, which is 
     ![reduce](images/Reduce.PNG)
 
     2. So, now there will be only one object in the `Iterable` of the *TotalTipForThisWindow* (`ProcessWindowFunction`) class. So, while window *materialization*, we can get the first object in the iterable and publish the result for this window. 
-    The result here is a Tuple of 3 elements (key, Sum of tip, ending timestamp of the window).
+    The result here is a Tuple of 3 elements (**key, Sum of tip, ending timestamp of the window**).
     ![reduce](images/ProcessWindow.PNG) 
 
 6. Instead of providing the customers with a Tuple of 3 elements, I wanted to show them something more intuitive. So, I used `Redis` as my near-realtime sink, which can be queried by the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app to produce a near-realtime ranking of the **n** most rewarding pick-up locations in terms of earning tip. The resultant image is stored in [reports/near-realtime_results](near-realtime_results/) directory.
@@ -228,15 +228,15 @@ My `Flink` cluster had 4 `Task slots` and the testing parallelism value was 2. S
 
 **Result & Observation the analytics:**
 
-This analytics computed the most rewarding pick-up location in terms of tip given by the passengers at the end of the rides. My streaming analytics was outputting the results considering the rides which took place last 1 hour and the window was sliding every 30 mins. This output was being stored in the `Redis` store and from there [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app was continously polling the output and sorting the locations according to the defined criterion and then finally producing the output graph. The output was continously changing as new results were being published from my steaming analytics. Below, I have attached 2 screenshots from the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, lef of which shows the output at the beggining and the right one shows the output at end of the 200000<sup>th</sup> event was processed by my streaming analytics service.
+This analytics computed the most rewarding pick-up location in terms of tip given by the passengers at the end of the rides. My streaming analytics was outputting the results considering the rides which took place in last 1 hour and the window was sliding every 30 mins. This output was being stored in the `Redis` store and from there [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app was continously polling the output and sorting the locations according to the defined criterion and then finally producing the output graph. The output was continously changing as new results were being published from my steaming analytics. Below, I have attached 2 screenshots from the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, left of which shows the output at the beginning and the right one shows the output at end of the 200000<sup>th</sup> event was processed by my streaming analytics service.
 
 Beginning of the run           |  End of the run
 :-------------------------:|:-------------------------:
 ![Test](images/testRunRes1.PNG) |  ![Test](images/testRunRes.PNG)
 
-From, the figure  we can see that, out of all 7 most rewarding locations that was present in initially in the output of the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, only location_id **50** remained rewarding till the end of the run. It is because, the other locations were not generating that amount of tip at the beginning to make their place in this list. But, as time passed and the streaming analytics recieved more and more events the eventually made their way up to the top 7 most popular locations that my customer wanted to see. 
+From, the figure  we can see that, out of all 7 most rewarding locations that was present in initially in the output of the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, only location_id **50** remained rewarding till the end of the run. It is because, the other locations (that are present at the right graph) were not generating that amount of tip at the beginning to make their place in this list. But, as time passed and the streaming analytics recieved more and more events they eventually made their way up to the top 7 most popular locations that my customer wanted to see. 
 
-It's also interesting to note that even though location_id **79** had higher total tip (around **\$19**) at the beginning, but it eventually lost it's place at the end, where the maximum rewarding location_id is **132** having total tip around **\$11** which is less than what location_id **79** had in first place. This serves the purpose of my analytics very well as the drivers are interested to see the most rewarding location in the past hour not for all the rides. So, now it would be more sensible for him to go to location number **132**, where as if we had considered the maximum total_tip for the whole 200000 events then the driver would have gone to location_id **79**, which is misleading. Because, it is not the most rewarding location in recent times (1 hour). 
+It's also interesting to note that even though location_id **79** had higher total tip (around **\$19**) at the beginning, but it eventually lost it's place at the end, where the maximum rewarding location_id is **132** having total tip around **\$11** which is less than what location_id **79** had in first place. This serves the purpose of my analytics very well as the drivers are interested to see the most rewarding location in the past hour not for all the rides since beginning of time. So, now it would be more sensible for him to go to location number **132**, where as if we had considered the maximum total_tip for the whole 200000 events then the driver would have gone to location_id **79**, which is misleading. Because, it is not the most rewarding location in recent times (1 hour). 
 
 
 **Performance analysis of the test run:**
@@ -268,22 +268,24 @@ It's also interesting to note that even though location_id **79** had higher tot
 
 **Dealing with wrong data**
 
-To test my **customerstreamapp** with different error rates I have created a new [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) app which periodically sends erroneous data to my streaming service. 
+To test my **customerstreamapp** with different error rates I have created a new [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) app which periodically sends erroneous data to my streaming service. So, instead of running [customer_producer](../code/customer-code/customer_producer.py), I ran [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) using the following command-
 
-To test how the **customerstreamapp** handles different rates of errors, instead of running [customer_producer](../code/customer-code/customer_producer.py), I ran [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) using the following command-
 
 ```bash 
- python3 code/customer-code/customer_buggy_producer.py --rows <number_of_rows_intended> --err <error_percentage>
+python3 code/customer-code/customer_buggy_producer.py --rows <number_of_rows_intended> --err <error_percentage>
 ```
+
 [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) takes the percentage from the command line and decides how many wrong events it needs to send and while sending the correct events, it periodically sends erroneous events. 
+
+Here using the argument `--err`, I provide the error percentage to [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) app. For example, if `--rows 10000 --err 5` is passed as argument, **500** out of these 10000 events will be erroneous. The rest will pass through my **customerstreamapp**.
 
 ![err](images/errorData.PNG)
 
 To handle these error erroneous events, I have modified my **TaxiRideSerializer** class. Now, it first tries to deserialize the incoming JSON string and if it fails it sends an empty **TaxiRideEvent** with an *error flag* in one of its variables to the **customerstreamapp**.
+
 ![des](images/deserialize.PNG)
 
-Then, in my **customerstreamapp** I filter the the incoming **TaxiRideEvent** stream by checking that *flagged variable* and prevent the erroneous events from passing into the **DataStream**. Then my **customerstreamapp** continues doing it tasks as usual. 
-
+Then, in my **customerstreamapp** I filter the the incoming **TaxiRideEvent** stream by checking that *flagged variable* and prevent the erroneous events from passing into the **DataStream**. Then my **customerstreamapp** continues doing its tasks as usual.
 
 ![des](images/filter.PNG)
 
@@ -395,7 +397,7 @@ From the tests above, it is clear that while for all of these test cases the com
 
 **Note: Software implementation done for 3.1 & 3.2**
 
-**Q1:** If you would like the analytics results to be stored also into mysimbdp-coredms as the final sink, how would you modify the design and implement this 
+**Q1:** *If you would like the analytics results to be stored also into mysimbdp-coredms as the final sink, how would you modify the design and implement this* 
 
 **Answer:**
 
@@ -416,7 +418,7 @@ In my **customerstreamapp**, I have added `elasticsearch` as a sink for storing 
 
 ![reduce](images/elastic.PNG)
 
-The *ESTotalTipInserter* takes each streaming output Tuple3 containing (location_id, total_tip, window end timestamp) and makes a new JSON object using their values. There is one additional field named *location* which contains the latitude,longitude pair of the pick-up location_id. The necessity of this field is discussed below.  
+The *ESTotalTipInserter* takes each streaming output Tuple3 containing (**location_id, total_tip, window end timestamp**) and makes a new JSON object using their values. There is one additional field named *location* which contains the **latitude,longitude** pair of the pick-up location_id. The necessity of this field is discussed below.  
 ![reduce](images/esinserter.PNG)
 
 As previously mentioned, the current [dataset](https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page) found in the offcial website doesn't contain the (lat,lon) values for each taxi rides. However, a [geoJSON format](https://geo.nyu.edu/catalog/nyu-2451-36743) of the 263 zones can be found in the Spatial Data Repository of **New York University (NYU).**
@@ -432,7 +434,7 @@ My **customerstreamapp** then just polls the  *lat,lon* value from `Redis` (usin
 Finally, it creates a POST request for `elasticsearch` and adds the request to Requestindexer, which ultimately sends the result entry to **mysimdp-coredms**(`elasticsearch`).
 
 
-**Q2:** Given the output of streaming analytics stored in mysimbdp-coredms for a long time. Explain a batch analytics that could be used to analyze such historical data. How would you implement it?
+**Q2:** *Given the output of streaming analytics stored in mysimbdp-coredms for a long time. Explain a batch analytics that could be used to analyze such historical data. How would you implement it?*
 
 **Answer:**
 
@@ -457,7 +459,7 @@ I have already implemented this batch analytics, and the implementation details 
     So, the output of batch analytics shows the **Aggregation (Sum)** of total tip for the specified time interval grouped by locations. It plots the locations (geo_points) using *Scaled Circle Markers*, the size of which is proportionate to the amount of the aggregation value. 
      ![lat](images/map.PNG)
 
-**Q3:** Assume that the streaming analytics detects a critical condition (e.g., a very high rate of alerts) that should trigger the execution of a batch analytics to analyze historical data. 
+**Q3:** *Assume that the streaming analytics detects a critical condition (e.g., a very high rate of alerts) that should trigger the execution of a batch analytics to analyze historical data.*
 
 **Answer:** 
 
@@ -472,10 +474,10 @@ Here, I would implement a new **customerbatchapp** which will also run on top of
 
 The **customerbatchapp** will first query the historical results of streaming analytics from **mysimbdp-coredms** via **mysimbdp-daas**. As Flinks `DataSet` API doesn't provide any mechanism to read from persistent storage, in this case **mysimbdp-daas** will generate a CSV file by querying the **mysimbdp-coredms** and pass it to **customerbatchapp**. Then, after performing batch analytics on the CSV file **customerbatchapp** will send the output result to my `Redis` data store. 
 
-So, now along with polling the near-realtime data, [customer_realtime-view](../code/customer-code/customer_realtime-view.py) will now be able to poll the batch streaming result and show it to the customer.
+So, now along with polling the near-realtime data, [customer_realtime-view](../code/customer-code/customer_realtime-view.py) will now be able to poll the batch streaming result and show it to the customer so now the customer can compare the near-realtime output with the batch analytics result and take his decision based on that.
 
 
-**Q4:** If you want to scale your streaming analytics service for many customers and data, which components would you focus and which techniques you want to use? 
+**Q4:** *If you want to scale your streaming analytics service for many customers and data, which components would you focus and which techniques you want to use?*
 
 **Answer:**
 
@@ -484,19 +486,19 @@ So, now along with polling the near-realtime data, [customer_realtime-view](../c
 In order to scale up my streaming analytics service for many customers and data, I would have to first focus on **mysimbdp-databroker** as it the main source of event stream for my streaming analytics service. Without proper scaling of this component, my service will not be able to produce statisfactory performance under high data load from many customers. To do so, 
 1. Firstly I would have to upgrade my **mysimbdp-databroker** from a single broker implementation to a multi-broker cluster so that I can distribute the load between the brokers to increase performance. Though, I have keep an eye on the load distribution between the different brokers in this case so that loads remain almost equal to all the nodes, which will improve performance. 
 
-2. Secondly, to increase throughput, I need to increase the number of partitions for each topic and at the same time I should ensure that each customer's **customerstreamapp** has equal number of consumers (equal parallelism vaalue) consuming data from the specified topic, so that maximum throughput can be achieved.  
+2. Secondly, to increase throughput, I need to increase the number of partitions for each topic and at the same time I should ensure that each customer's **customerstreamapp** has equal number of consumers (equal parallelism value) consuming data from the specified topic, so that maximum throughput can be achieved.  
 
 **Scaling of customerstreamapp:**
 
-To scale up my streaming analytics process for multiple customers I should have separate **customerstreamapp** for each of my customers. And in each of these customerstreamapps should be run with a high parallelism value as it will split the tasks into several parallel instances according to the parallelism value, which will in terms improve performance. However, as I am serving multiple customers now, it would be better to define max paralellism for each of my customerstreamapp, so that they can scale up to a maximum point and use free taskslots if available which will result into better performance.
+To scale up my streaming analytics process for multiple customers I should have separate **customerstreamapp** for each of my customers and in each of these customerstreamapps should be run with a high parallelism value as it will split the tasks into several parallel instances according to the parallelism value, which will in terms improve performance. However, as I am serving multiple customers now, it would be better to define max paralellism for each of my customerstreamapp, so that they can scale up to a maximum point and use free taskslots if available which will result into better performance.
 
-Finally, as I am disseminating the results of my streaming analysis by storing the result into `Redis`, from where the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) polls the result, so my `Redis` sink also needs to be scaled to accomodate many customers and data.
-
-
+Finally, as I am disseminating the results of my streaming analysis by storing the result into `Redis`, from where the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) polls the result, so my `Redis` sink also needs to be scaled to accomodate many customers and data. Same goes for my **mysimbdp-coredms** if I also want to persist results for future batch analytics.
 
 
 
-**Q5:** Is it possible to achieve end-to-end exactly once delivery in your current implementation? If yes,  
+
+
+**Q5:** *Is it possible to achieve end-to-end exactly once delivery in your current implementation?*   
 
 **Answer:** 
 
