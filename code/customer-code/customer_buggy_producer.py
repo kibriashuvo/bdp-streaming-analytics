@@ -29,8 +29,6 @@ error_rate = int(int(args.rows)*(int(args.err)/100))
 
 interval_of_wrong_messages = int(int(args.rows)/error_rate)
 
-#print(interval_of_wrong_messages)
-
 count = 0
 wmc = 0
 def f(x):
@@ -42,9 +40,7 @@ def f(x):
         wmc += 1
         wrong_data = dict({
             ('SomeRandom', 'Data')        
-        })
-        #print(json.dumps(wrong_data).encode('utf-8'))
-        #logging.info("Sent a wrong data")
+        })       
         producer.send('customerstreamapp-input',json.dumps(wrong_data).encode('utf-8'))
     else:
         producer.send('customerstreamapp-input',a.encode('utf-8'))

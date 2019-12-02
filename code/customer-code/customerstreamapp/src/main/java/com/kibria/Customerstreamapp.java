@@ -209,15 +209,15 @@ public class Customerstreamapp {
 		// parse user parameters
 		//ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
-		DataStream<TaxiRideEvent> messageStream = env.addSource(new FlinkKafkaConsumer011<>("customerstreamapp-input", new TaxiRideSerializer(), properties))
-													.filter((event) -> {
-														if(event.getStore_and_fwd_flag().contains("jsonParseError")) {
-															System.out.println("Error handled");
-															//LOG.warn("JsonParseException was handled: " + event.get("jsonParseError").asText());
-															return false;
-														}
-														return true;
-													});
+		DataStream<TaxiRideEvent> messageStream = 
+							env.addSource(new FlinkKafkaConsumer011<>("customerstreamapp-input", new TaxiRideSerializer(), properties))
+								.filter((event) -> {
+									if(event.getStore_and_fwd_flag().contains("jsonParseError")) {
+										System.out.println("Error handled");															
+										return false;
+									}
+									return true;
+								});
 
 		
 

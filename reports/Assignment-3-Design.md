@@ -77,10 +77,7 @@ Now, lets consider the same example with sliding window. Here, again we have win
 
 Thus, I'm using sliding window for my streaming analytics. 
 
-For example my analytics will be computing total tip for each location for the past 15 mins computed in every 5 mins. A new window will be created in every 5 mins, and each of this windows will contain the taxi ride events recieved in last 15 mins.....
-
-overlap
-Result materialization
+For example my analytics will be computing total tip for each location for the past 15 mins computed in every 5 mins. A new window will be created in every 5 mins, and each of this windows will contain the taxi ride events recieved in last 15 mins.
 
 
 **Q4:** Explain which performance metrics would be important for the streaming analytics for your customer cases
@@ -269,7 +266,51 @@ It's also interesting to note that even though location_id **79** had higher tot
 
 **Answer:**
 
-To test my **customerstreamapp** with different error rates I have created a new [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) app which periodically sends erroneous data to my streaming service.  
+**Dealing with wrong data**
+
+To test my **customerstreamapp** with different error rates I have created a new [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) app which periodically sends erroneous data to my streaming service. 
+
+To test how the **customerstreamapp** handles different rates of errors, instead of running [customer_producer](../code/customer-code/customer_producer.py), I ran [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) using the following command-
+
+```bash 
+ python3 code/customer-code/customer_buggy_producer.py --rows <number_of_rows_intended> --err <error_percentage>
+```
+[customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) takes the percentage from the command line and decides how many wrong events it needs to send and while sending the correct events, it periodically sends erroneous events. 
+
+![err](images/errorData.PNG)
+
+To handle these error erroneous events, I have modified my **TaxiRideSerializer** class. Now, it first tries to deserialize the incoming JSON string and if it fails it sends an empty **TaxiRideEvent** with an *error flag* in one of its variables to the **customerstreamapp**.
+![des](images/deserialize.PNG)
+
+Then, in my **customerstreamapp** I filter the the incoming **TaxiRideEvent** stream by checking that *flagged variable* and prevent the erroneous events from passing into the **DataStream**. Then my **customerstreamapp** continues doing it tasks as usual. 
+
+
+![des](images/filter.PNG)
+
+**Test results:**
+
+To test how my system performs while handling wrong data I ran the same test with 3 different error rates. 
+
+A video demo of the test with the aforementioned settings can be seen [here](https://www.youtube.com/watch?v=auSGIk7-znM).
+
+**Test environment description:** 
+
+| ENV Type  | Value |
+| ------------- | ------------- |
+| Parallelism  | 1 |
+| No. of events  | 100000 |
+| Window Type  | Sliding |
+| Window Width  | 1 Hour|
+| Window Period  | 30 mins|
+|Machine Specs  | Core-i7 1065g7, 16 GB RAM  |
+
+ | Metric | Error Rate (5%) |  Error Rate (10%) | Error Rate (15%) |
+| ------------- | ------------- |------------- |  ------------- |
+|Valid Event Processed | 950,000  | 900,000  | 833,334 |
+|Sustained Latency | 354ms  | 304ms | 326ms |
+|Maximum Throughput | 4955/s  | 4859/s | 4533/s |
+
+Here, we can see that, as with the increasing rate of error, the maximum throughput being reduced, although the latency is not being affected by the increasing percentage of error.
 
 
 **Q5:** *Explain parallelism settings in your implementation and test with different (higher) degrees of parallelism. Report the performance and issues you have observed in your testing environments.*
