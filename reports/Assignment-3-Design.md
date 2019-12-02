@@ -281,6 +281,7 @@ To test my **customerstreamapp** with different error rates I have created a new
 I have testing my streaming analytics with the following test configuration. 
 
 **Test Environment:**
+
 | ENV Type  | Value |
 | ------------- | ------------- |
 | Parallelism  | 1, 2 and 4 |
