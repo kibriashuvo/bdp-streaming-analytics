@@ -229,9 +229,9 @@ A video demo of the streaming analytics running in the test environment can be s
 
 My `Flink` cluster had 4 `Task slots` and the testing parallelism value was 2. So, the rest 2 slots were idle during this run. (Note: In later part we will discuss about different parallelism settings).
 
-**Result of the analytics:**
+**Result & Observation the analytics:**
 
-This analytics computed the most rewarding pick-up location in terms of tip given by the passengers at the end of the rides. My streaming analytics was outputting the results considering the rides which took place last 1 hour and the window was sliding every 30 mins. This output was being stored in the `Redis` store and from there [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app was continously polling the output and sorting the locations according to the defined criterion and then finally producing the output graph. The output was continouslyy changing as new results were being published from my steaming analytics. Below, I have attached 2 screenshots from the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, lef of which shows the output at the beggining and the right one shows the output at end of the 200000<sup>th</sup> event was processed by my streaming analytics service.
+This analytics computed the most rewarding pick-up location in terms of tip given by the passengers at the end of the rides. My streaming analytics was outputting the results considering the rides which took place last 1 hour and the window was sliding every 30 mins. This output was being stored in the `Redis` store and from there [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app was continously polling the output and sorting the locations according to the defined criterion and then finally producing the output graph. The output was continously changing as new results were being published from my steaming analytics. Below, I have attached 2 screenshots from the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, lef of which shows the output at the beggining and the right one shows the output at end of the 200000<sup>th</sup> event was processed by my streaming analytics service.
 
 Beginning of the run           |  End of the run
 :-------------------------:|:-------------------------:
@@ -239,11 +239,10 @@ Beginning of the run           |  End of the run
 
 From, the figure  we can see that, out of all 7 most rewarding locations that was present in initially in the output of the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) app, only location_id **50** remained rewarding till the end of the run. It is because, the other locations were not generating that amount of tip at the beginning to make their place in this list. But, as time passed and the streaming analytics recieved more and more events the eventually made their way up to the top 7 most popular locations that my customer wanted to see. 
 
+It's also interesting to note that even though location_id **79** had higher total tip (around **\$19**) at the beginning, but it eventually lost it's place at the end, where the maximum rewarding location_id is **132** having total tip around **\$11** which is less than what location_id **79** had in first place. This serves the purpose of my analytics very well as the drivers are interested to see the most rewarding location in the past hour not for all the rides. So, now it would be more sensible for him to go to location number **132**, where as if we had considered the maximum total_tip for the whole 200000 events then the driver would have gone to location_id **79**, which is misleading. Because, it is not the most rewarding location in recent times (1 hour). 
 
 
-Here, 
-
-Performance analysis of the test run:
+**Performance analysis of the test run:**
 
 ![Test](images/testRun.PNG)
 
@@ -253,7 +252,7 @@ Performance analysis of the test run:
 | ------------- | ------------- |
 | No. of events  | 85417 |
 |Sustained Latency | 121ms  |
-|Sustained Throughput | 1271/s  |
+|Maximum Throughput | 1271/s  |
 
 **TaskManager1**:
 
@@ -261,13 +260,87 @@ Performance analysis of the test run:
 | ------------- | ------------- |
 | No. of events  | 114583 |
 |Sustained Latency | 212ms  |
-|Sustained Throughput | 1713/s  |
+|Maximum Throughput | 1713/s  |
 
 
- From the tables, above 
+ From the tables, above we can see that even though the maximum throughput was higher (1713/s) for the *TaskManager1*, the latency was higher also in this case. In case of *TaskManager0* notice a completely opposite scenario where both the sustained latency and maximum throughput was lower.
 
 
 
+
+**Q5:** Explain parallelism settings in your implementation and test with different (higher) degrees of parallelism. Report the performance and issues you have observed in your testing environments.
+
+**Answer:**
+
+`Flink` provides support of defining parallelism in 3 levels (**Opeartor**, **Execution Environment**, **Client**). In my **customerstreamapp** I have decided to set the paralellism in **Client** level. So my **customerstreamapp** can be run with different parallelism settings without modifying the code.
+
+I have testing my streaming analytics with the following test configuration. 
+
+**Test Environment:**
+| ENV Type  | Value |
+| ------------- | ------------- |
+| Parallelism  | 1, 2 and 4 |
+| No. of events  | 1,000,000 and 2,000,000 |
+| Window Type  | Sliding |
+| Window Width  | 1 Hour|
+| Window Period  | 30 mins|
+|Machine Specs  | Core-i7 1065g7, 16 GB RAM  |
+
+
+
+A video demo of the test with the aforementioned settings can be seen [here](https://www.youtube.com/watch?v=BWRgp-gHadc).
+
+**Number of events 1,000,000:**
+
+1. Parallelism = 1:
+    
+
+    | Metric | **TaskManager0** |
+    | ------------- | ------------- |   
+    |Sustained Latency | 409ms  |
+    |Maximum Throughput | 5456/s  |
+
+1. Parallelism = 2:
+    
+
+    | Metric | **TaskManager0** | **TaskManager1** |
+    | ------------- | ------------- |------------- |   
+    |Sustained Latency | 142ms  | 232ms |
+    |Maximum Throughput | 2358/s  | 2898/s |
+
+2. Parallelism = 4:
+
+    | Metric | **TaskManager0** | **TaskManager1** | **TaskManager2** | **TaskManager3** |
+    | ------------- | ------------- |------------- |------------- |------------- |
+    |Sustained Latency | 114ms  | 36ms | 94ms | 143ms|
+    |Maximum Throughput | 1667/s  | 663/s | 1107/s | 1743/s |
+
+**Number of events 2,000,000:**
+
+1. Parallelism = 1:
+    
+
+    | Metric | **TaskManager0** |
+    | ------------- | ------------- |   
+    |Sustained Latency | 469ms  |
+    |Maximum Throughput | 5387/s  |
+
+1. Parallelism = 2:
+    
+
+    | Metric | **TaskManager0** | **TaskManager1** |
+    | ------------- | ------------- |------------- |   
+    |Sustained Latency | 137ms  | 230ms |
+    |Maximum Throughput | 2347/s  | 2909/s |
+
+2. Parallelism = 4:
+
+    | Metric | **TaskManager0** | **TaskManager1** | **TaskManager2** | **TaskManager3** |
+    | ------------- | ------------- |------------- |------------- |------------- |
+    |Sustained Latency | 134ms  | 45ms | 105ms | 161ms|
+    |Maximum Throughput | 1676/s  | 670/s | 1108/s | 1757/s |
+
+From the tests above, it is clear that while for all of these test cases the combined throughput of all the taskmanagers almost remained same, the sustained latency kept improving as the degree of parallelism was increased. In case of 1,000,000 events it decreased from 409ms (for parallelism 1) to 142ms (minimum for parallelism 2) to 36ms (minimum for parallelism 4). Then, I ran the same test for 2,000,000 events to verify this trend, and these tests demonstrated the same behavior as well, where the latency went down from 469ms (for parallelism 1) to 137ms (minimum for parallelism 2) to 45ms (minimum for parallelism 4). It is also notable that, none of these test cases experienced any backpressure.
 
 ---
 
@@ -369,7 +442,7 @@ In order to scale up my streaming analytics service for many customers and data,
 
 **Scaling of customerstreamapp:**
 
-To scale up my streaming analytics process for multiple customers I should have separate **customerstreamapp** for each of my customers. And in each of these customerstreamapps should be run with a high parallelism value as it will split the tasks into several parallel instances according to the parallelism value, which will in terms improve performance. However, as I am serving multiple customers now, it would be better to define max paralellism for each of my customerstreamapp, so that they can scale up to a maximum point and use free taskslots if available.
+To scale up my streaming analytics process for multiple customers I should have separate **customerstreamapp** for each of my customers. And in each of these customerstreamapps should be run with a high parallelism value as it will split the tasks into several parallel instances according to the parallelism value, which will in terms improve performance. However, as I am serving multiple customers now, it would be better to define max paralellism for each of my customerstreamapp, so that they can scale up to a maximum point and use free taskslots if available which will result into better performance.
 
 Finally, as I am disseminating the results of my streaming analysis by storing the result into `Redis`, from where the [customer_realtime-view](../code/customer-code/customer_realtime-view.py) polls the result, so my `Redis` sink also needs to be scaled to accomodate many customers and data.
 
