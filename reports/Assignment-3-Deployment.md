@@ -46,8 +46,7 @@ For installing Python please follow the instructions [here](http://ubuntuhandboo
 
 **The following script will deploy the whole pipeline and download test data**
 
-```bash
- 
+```bash 
  code/deployment-scripts/deploy-all
 ```
 
@@ -84,7 +83,7 @@ Upload the schema of the **final sink `Elasticsearch` (mysimpbdp-coredms)**
 **Starting streaming customer data to `kafka`**
 
 ```bash
- python3 code/customer-code/customer_producer.py --row <number of rows>
+ python3 code/customer-code/customer_producer.py --rows <number of rows>
 ```
 
 

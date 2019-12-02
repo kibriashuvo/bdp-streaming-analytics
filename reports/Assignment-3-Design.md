@@ -210,7 +210,7 @@ Finally we execute our *StreamExecutionEnvironment* env.
 ![reduce](images/exec.PNG)
 
 
-**Q3:** Run customerstreamapp and show the operation of the customerstreamapp with your test environments. Explain the test environments. Discuss the analytics and its performance observations
+**Q3:** *Run customerstreamapp and show the operation of the customerstreamapp with your test environments. Explain the test environments. Discuss the analytics and its performance observations*
 
 **Answer:**
 
@@ -265,10 +265,14 @@ It's also interesting to note that even though location_id **79** had higher tot
 
  From the tables, above we can see that even though the maximum throughput was higher (1713/s) for the *TaskManager1*, the latency was higher also in this case. In case of *TaskManager0* notice a completely opposite scenario where both the sustained latency and maximum throughput was lower.
 
+**Q4:** *Present your tests and explain them for the situation in which wrong data is sent from or is within data sources. Report how your implementation deals with that (e.g., exceptions, failures, and decreasing performance). You should test with different error rates.* 
+
+**Answer:**
+
+To test my **customerstreamapp** with different error rates I have created a new [customer_buggy_producer](../code/customer-code/customer_buggy_producer.py) app which periodically sends erroneous data to my streaming service.  
 
 
-
-**Q5:** Explain parallelism settings in your implementation and test with different (higher) degrees of parallelism. Report the performance and issues you have observed in your testing environments.
+**Q5:** *Explain parallelism settings in your implementation and test with different (higher) degrees of parallelism. Report the performance and issues you have observed in your testing environments.*
 
 **Answer:**
 
