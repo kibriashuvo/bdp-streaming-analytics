@@ -10,7 +10,7 @@ Near-Realtime Output            |  Batch analytics on RT output
 :-------------------------:|:-------------------------:
 ![alt-text-2](reports/images/outputRT.png "RT output") |  ![alt-text-2](reports/images/mapCrop.PNG "Batch Analytics")
 
-A video demo of the streaming analytics running in the test environment can be seen [here](https://www.youtube.com/watch?v=JxF2Ke78yX0). 
+**A video demo of the streaming analytics running in the test environment can be seen [here](https://www.youtube.com/watch?v=JxF2Ke78yX0).** 
 
 ---
 ## Deployment
