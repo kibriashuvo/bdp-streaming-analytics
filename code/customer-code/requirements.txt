@@ -1,5 +1,5 @@
 kafka-python==1.4.7
 pyshp==2.1.0
-redis==3.3.11
+redis==4.5.3
 pandas
 matplotlib
